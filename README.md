@@ -1,30 +1,57 @@
-# Personal finance app
+# 💸 Cifra – Tu Finanzas, Claras
 
-*Automatically synced with your [v0.dev](https://v0.dev) deployments*
+**Cifra** es una app para ayudarte a entender y organizar tus gastos mensuales de forma simple, rápida y visual.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/nahuerodcasts-projects/v0-personal-finance-app)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/XlPhkwYthVl)
+---
 
-## Overview
+## ¿Qué podés hacer con Cifra?
 
-This repository will stay in sync with your deployed chats on [v0.dev](https://v0.dev).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.dev](https://v0.dev).
+✅ **Registrar tus gastos**
+- Elegí una categoría (vivienda, salud, transporte, etc.)
+- Indicá si es un gasto fijo, variable, en cuotas o por única vez
+- Definí el medio de pago (tarjeta, efectivo, transferencia)
+- Cargá el importe y la fecha
 
-## Deployment
+✅ **Ver tus finanzas mensuales**
+- Ingresos, egresos y ahorro estimado
+- Cuánto representa cada gasto sobre tu sueldo
+- Cuánto te queda disponible
 
-Your project is live at:
+✅ **Visualizar tus datos**
+- Gráficos circulares por categoría de gasto
+- Listado de actividad reciente
+- Comparación con meses anteriores
 
-**[https://vercel.com/nahuerodcasts-projects/v0-personal-finance-app](https://vercel.com/nahuerodcasts-projects/v0-personal-finance-app)**
+✅ **Crear nuevos meses**
+- Los gastos fijos y en cuotas se mantienen automáticamente
+- Podés empezar un nuevo mes con un clic
 
-## Build your app
+✅ **Guardar todo automáticamente**
+- No necesitás registrarte
+- Toda la información se guarda en tu dispositivo
 
-Continue building your app on:
+✅ **Importar y exportar tus datos**
+- Para hacer backups o llevar tus finanzas a otra herramienta
 
-**[https://v0.dev/chat/projects/XlPhkwYthVl](https://v0.dev/chat/projects/XlPhkwYthVl)**
+---
 
-## How It Works
+## ¿Para quién es esta app?
 
-1. Create and modify your project using [v0.dev](https://v0.dev)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+- Personas que quieren entender en qué gastan
+- Quienes buscan ahorrar todos los meses
+- Los que quieren llevar un control sin complicaciones
+
+---
+
+## ¿Cómo empiezo?
+
+1. Ingresá tu nombre y sueldo.
+2. Cargá tus primeros gastos.
+3. Mirá cómo evoluciona tu mes.
+
+---
+
+## Cifra te muestra lo que importa
+
+💡 Visual. Rápida. Sin vueltas. Sin logins.
+

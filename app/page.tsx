@@ -1,12 +1,19 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState, useEffect, useRef } from "react";
+import { motion, useInView } from "framer-motion";
+import CountUp from "react-countup";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -14,15 +21,42 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts"
-import { ThemeToggle } from "@/components/theme-toggle"
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import {
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from "recharts";
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
   Wallet,
   Plus,
@@ -53,32 +87,32 @@ import {
   Calendar,
   CalendarPlus,
   PieChartIcon,
-} from "lucide-react"
+} from "lucide-react";
 
 interface Expense {
-  id: string
-  nombre: string
-  categoria: string
-  importe: number
-  porcentajeSueldo?: number
-  tipoGasto: "Fijo" | "Variable" | "Cuotas" | "Única vez"
-  medioPago: "Tarjeta" | "Cash" | "Transferencia"
-  cuotas?: number
-  fechaCreacion: string
+  id: string;
+  nombre: string;
+  categoria: string;
+  importe: number;
+  porcentajeSueldo?: number;
+  tipoGasto: "Fijo" | "Variable" | "Cuotas" | "Única vez";
+  medioPago: "Tarjeta" | "Cash" | "Transferencia";
+  cuotas?: number;
+  fechaCreacion: string;
 }
 
 interface User {
-  nombre: string
-  sueldo: number
-  tipoSueldo: "Fijo" | "Variable"
-  configurado: boolean
+  nombre: string;
+  sueldo: number;
+  tipoSueldo: "Fijo" | "Variable";
+  configurado: boolean;
 }
 
 interface Category {
-  id: string
-  name: string
-  icon: string
-  color: string
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
 }
 
 const DEFAULT_CATEGORIES = [
@@ -91,7 +125,7 @@ const DEFAULT_CATEGORIES = [
   { id: "7", name: "Ropa", icon: "Shirt", color: "#64748b" },
   { id: "8", name: "Servicios", icon: "ShoppingCart", color: "#6b7280" },
   { id: "9", name: "Otros", icon: "Wallet", color: "#9ca3af" },
-]
+];
 
 const CATEGORY_ICONS = {
   Home,
@@ -103,50 +137,112 @@ const CATEGORY_ICONS = {
   Shirt,
   ShoppingCart,
   Wallet,
-}
+};
 
 // Función para formatear fechas correctamente
 const formatDate = (dateString: string) => {
-  const date = new Date(dateString + "-01")
+  const date = new Date(dateString + "-01");
   return date.toLocaleDateString("es-ES", {
     month: "long",
     year: "numeric",
-  })
-}
+  });
+};
 
 const formatDateShort = (dateString: string) => {
-  const date = new Date(dateString + "-01")
+  const date = new Date(dateString + "-01");
   return date.toLocaleDateString("es-ES", {
     month: "short",
     year: "2-digit",
-  })
-}
+  });
+};
 
 const getCurrentDateFormatted = () => {
-  const now = new Date()
+  const now = new Date();
   return now.toLocaleDateString("es-ES", {
     weekday: "long",
     day: "numeric",
     month: "long",
-  })
-}
+  });
+};
+
+// Component for scroll animations
+const ScrollAnimatedDiv = ({
+  children,
+  className = "",
+  delay = 0,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  delay?: number;
+}) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 50 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+      transition={{ duration: 0.6, delay }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+// Animated Number Component with CountUp
+const AnimatedNumber = ({
+  end,
+  prefix = "",
+  suffix = "",
+  decimals = 0,
+}: {
+  end: number;
+  prefix?: string;
+  suffix?: string;
+  decimals?: number;
+}) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
+
+  return (
+    <span ref={ref}>
+      {isInView ? (
+        <CountUp
+          end={end}
+          duration={2}
+          prefix={prefix}
+          suffix={suffix}
+          decimals={decimals}
+        />
+      ) : (
+        `${prefix}0${suffix}`
+      )}
+    </span>
+  );
+};
 
 export default function CifraApp() {
-  const [currentScreen, setCurrentScreen] = useState<"landing" | "setup" | "dashboard">("landing")
-  const [currentSection, setCurrentSection] = useState<"overview" | "months" | "categories" | "settings">("overview")
-  const [user, setUser] = useState<User | null>(null)
-  const [userName, setUserName] = useState("")
+  const [currentScreen, setCurrentScreen] = useState<
+    "landing" | "setup" | "dashboard"
+  >("landing");
+  const [currentSection, setCurrentSection] = useState<
+    "overview" | "months" | "categories" | "settings"
+  >("overview");
+  const [user, setUser] = useState<User | null>(null);
+  const [userName, setUserName] = useState("");
   const [setupData, setSetupData] = useState({
     sueldo: "",
     tipoSueldo: "Fijo" as "Fijo" | "Variable",
-  })
-  const [expenses, setExpenses] = useState<Expense[]>([])
-  const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES)
-  const [currentMonth, setCurrentMonth] = useState("")
-  const [availableMonths, setAvailableMonths] = useState<string[]>([])
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [searchTerm, setSearchTerm] = useState("")
+  });
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
+  const [currentMonth, setCurrentMonth] = useState("");
+  const [availableMonths, setAvailableMonths] = useState<string[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const [newExpense, setNewExpense] = useState({
     nombre: "",
     categoria: "",
@@ -154,10 +250,10 @@ export default function CifraApp() {
     tipoGasto: "",
     medioPago: "",
     cuotas: "",
-  })
+  });
 
-  const [editingExpense, setEditingExpense] = useState<Expense | null>(null)
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editExpenseData, setEditExpenseData] = useState({
     nombre: "",
     categoria: "",
@@ -165,80 +261,83 @@ export default function CifraApp() {
     tipoGasto: "",
     medioPago: "",
     cuotas: "",
-  })
+  });
 
   // Estados para CRUD de categorías
-  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false)
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null)
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [categoryFormData, setCategoryFormData] = useState({
     name: "",
     icon: "Wallet",
     color: "#64748b",
-  })
+  });
 
   // Estados para gestión de meses
-  const [isNewMonthModalOpen, setIsNewMonthModalOpen] = useState(false)
-  const [newMonthData, setNewMonthData] = useState("")
+  const [isNewMonthModalOpen, setIsNewMonthModalOpen] = useState(false);
+  const [newMonthData, setNewMonthData] = useState("");
 
   // Inicializar datos al cargar
   useEffect(() => {
-    const savedUser = localStorage.getItem("cifra-user")
-    const savedCategories = localStorage.getItem("cifra-categories")
-    const currentMonthKey = new Date().toISOString().slice(0, 7)
-    setCurrentMonth(currentMonthKey)
-    loadAvailableMonths()
+    const savedUser = localStorage.getItem("cifra-user");
+    const savedCategories = localStorage.getItem("cifra-categories");
+    const currentMonthKey = new Date().toISOString().slice(0, 7);
+    setCurrentMonth(currentMonthKey);
+    loadAvailableMonths();
 
     if (savedCategories) {
-      setCategories(JSON.parse(savedCategories))
+      setCategories(JSON.parse(savedCategories));
     }
 
     if (savedUser) {
-      const userData = JSON.parse(savedUser)
-      setUser(userData)
+      const userData = JSON.parse(savedUser);
+      setUser(userData);
 
       if (!userData.configurado) {
-        setCurrentScreen("setup")
+        setCurrentScreen("setup");
       } else {
-        setCurrentScreen("dashboard")
-        loadExpenses(currentMonthKey)
+        setCurrentScreen("dashboard");
+        loadExpenses(currentMonthKey);
       }
     }
-  }, [])
+  }, []);
 
   const loadAvailableMonths = () => {
-    const keys = Object.keys(localStorage)
+    const keys = Object.keys(localStorage);
     const months = keys
       .filter((key) => key.startsWith("cifra-expenses-"))
       .map((key) => key.replace("cifra-expenses-", ""))
       .sort()
-      .reverse()
+      .reverse();
 
-    const currentMonthKey = new Date().toISOString().slice(0, 7)
+    const currentMonthKey = new Date().toISOString().slice(0, 7);
     if (!months.includes(currentMonthKey)) {
-      months.unshift(currentMonthKey)
+      months.unshift(currentMonthKey);
     }
 
-    setAvailableMonths(months)
-  }
+    setAvailableMonths(months);
+  };
 
   const loadExpenses = (monthKey: string) => {
-    const savedExpenses = localStorage.getItem(`cifra-expenses-${monthKey}`)
+    const savedExpenses = localStorage.getItem(`cifra-expenses-${monthKey}`);
     if (savedExpenses) {
-      setExpenses(JSON.parse(savedExpenses))
+      setExpenses(JSON.parse(savedExpenses));
     } else {
-      setExpenses([])
+      setExpenses([]);
     }
-  }
+  };
 
   const saveExpenses = (expensesToSave: Expense[], monthKey: string) => {
-    localStorage.setItem(`cifra-expenses-${monthKey}`, JSON.stringify(expensesToSave))
-    loadAvailableMonths()
-  }
+    localStorage.setItem(
+      `cifra-expenses-${monthKey}`,
+      JSON.stringify(expensesToSave)
+    );
+    loadAvailableMonths();
+  };
 
   const saveCategories = (categoriesToSave: Category[]) => {
-    setCategories(categoriesToSave)
-    localStorage.setItem("cifra-categories", JSON.stringify(categoriesToSave))
-  }
+    setCategories(categoriesToSave);
+    localStorage.setItem("cifra-categories", JSON.stringify(categoriesToSave));
+  };
 
   const handleStartApp = () => {
     if (userName.trim()) {
@@ -247,12 +346,12 @@ export default function CifraApp() {
         sueldo: 0,
         tipoSueldo: "Fijo",
         configurado: false,
-      }
-      setUser(userData)
-      localStorage.setItem("cifra-user", JSON.stringify(userData))
-      setCurrentScreen("setup")
+      };
+      setUser(userData);
+      localStorage.setItem("cifra-user", JSON.stringify(userData));
+      setCurrentScreen("setup");
     }
-  }
+  };
 
   const handleCompleteSetup = () => {
     if (user && setupData.sueldo) {
@@ -261,27 +360,27 @@ export default function CifraApp() {
         sueldo: Number.parseFloat(setupData.sueldo),
         tipoSueldo: setupData.tipoSueldo,
         configurado: true,
-      }
-      setUser(updatedUser)
-      localStorage.setItem("cifra-user", JSON.stringify(updatedUser))
-      setCurrentScreen("dashboard")
-      loadExpenses(currentMonth)
+      };
+      setUser(updatedUser);
+      localStorage.setItem("cifra-user", JSON.stringify(updatedUser));
+      setCurrentScreen("dashboard");
+      loadExpenses(currentMonth);
     }
-  }
+  };
 
   const handleLogout = () => {
-    const keys = Object.keys(localStorage)
+    const keys = Object.keys(localStorage);
     keys.forEach((key) => {
       if (key.startsWith("cifra-")) {
-        localStorage.removeItem(key)
+        localStorage.removeItem(key);
       }
-    })
+    });
 
-    setUser(null)
-    setUserName("")
-    setExpenses([])
-    setCurrentScreen("landing")
-  }
+    setUser(null);
+    setUserName("");
+    setExpenses([]);
+    setCurrentScreen("landing");
+  };
 
   const handleAddExpense = () => {
     if (
@@ -291,8 +390,10 @@ export default function CifraApp() {
       newExpense.tipoGasto &&
       newExpense.medioPago
     ) {
-      const importe = Number.parseFloat(newExpense.importe)
-      const porcentajeSueldo = user?.sueldo ? (importe / user.sueldo) * 100 : undefined
+      const importe = Number.parseFloat(newExpense.importe);
+      const porcentajeSueldo = user?.sueldo
+        ? (importe / user.sueldo) * 100
+        : undefined;
 
       const expense: Expense = {
         id: Date.now().toString(),
@@ -302,13 +403,15 @@ export default function CifraApp() {
         porcentajeSueldo,
         tipoGasto: newExpense.tipoGasto as any,
         medioPago: newExpense.medioPago as any,
-        cuotas: newExpense.cuotas ? Number.parseInt(newExpense.cuotas) : undefined,
+        cuotas: newExpense.cuotas
+          ? Number.parseInt(newExpense.cuotas)
+          : undefined,
         fechaCreacion: new Date().toISOString(),
-      }
+      };
 
-      const updatedExpenses = [...expenses, expense]
-      setExpenses(updatedExpenses)
-      saveExpenses(updatedExpenses, currentMonth)
+      const updatedExpenses = [...expenses, expense];
+      setExpenses(updatedExpenses);
+      saveExpenses(updatedExpenses, currentMonth);
 
       setNewExpense({
         nombre: "",
@@ -317,13 +420,13 @@ export default function CifraApp() {
         tipoGasto: "",
         medioPago: "",
         cuotas: "",
-      })
-      setIsModalOpen(false)
+      });
+      setIsModalOpen(false);
     }
-  }
+  };
 
   const handleEditExpense = (expense: Expense) => {
-    setEditingExpense(expense)
+    setEditingExpense(expense);
     setEditExpenseData({
       nombre: expense.nombre,
       categoria: expense.categoria,
@@ -331,9 +434,9 @@ export default function CifraApp() {
       tipoGasto: expense.tipoGasto,
       medioPago: expense.medioPago,
       cuotas: expense.cuotas?.toString() || "",
-    })
-    setIsEditModalOpen(true)
-  }
+    });
+    setIsEditModalOpen(true);
+  };
 
   const handleUpdateExpense = () => {
     if (
@@ -344,8 +447,10 @@ export default function CifraApp() {
       editExpenseData.tipoGasto &&
       editExpenseData.medioPago
     ) {
-      const importe = Number.parseFloat(editExpenseData.importe)
-      const porcentajeSueldo = user?.sueldo ? (importe / user.sueldo) * 100 : undefined
+      const importe = Number.parseFloat(editExpenseData.importe);
+      const porcentajeSueldo = user?.sueldo
+        ? (importe / user.sueldo) * 100
+        : undefined;
 
       const updatedExpense: Expense = {
         ...editingExpense,
@@ -355,14 +460,18 @@ export default function CifraApp() {
         porcentajeSueldo,
         tipoGasto: editExpenseData.tipoGasto as any,
         medioPago: editExpenseData.medioPago as any,
-        cuotas: editExpenseData.cuotas ? Number.parseInt(editExpenseData.cuotas) : undefined,
-      }
+        cuotas: editExpenseData.cuotas
+          ? Number.parseInt(editExpenseData.cuotas)
+          : undefined,
+      };
 
-      const updatedExpenses = expenses.map((exp) => (exp.id === editingExpense.id ? updatedExpense : exp))
-      setExpenses(updatedExpenses)
-      saveExpenses(updatedExpenses, currentMonth)
+      const updatedExpenses = expenses.map((exp) =>
+        exp.id === editingExpense.id ? updatedExpense : exp
+      );
+      setExpenses(updatedExpenses);
+      saveExpenses(updatedExpenses, currentMonth);
 
-      setEditingExpense(null)
+      setEditingExpense(null);
       setEditExpenseData({
         nombre: "",
         categoria: "",
@@ -370,43 +479,43 @@ export default function CifraApp() {
         tipoGasto: "",
         medioPago: "",
         cuotas: "",
-      })
-      setIsEditModalOpen(false)
+      });
+      setIsEditModalOpen(false);
     }
-  }
+  };
 
   const handleDeleteExpense = (expenseId: string) => {
-    const updatedExpenses = expenses.filter((exp) => exp.id !== expenseId)
-    setExpenses(updatedExpenses)
-    saveExpenses(updatedExpenses, currentMonth)
-  }
+    const updatedExpenses = expenses.filter((exp) => exp.id !== expenseId);
+    setExpenses(updatedExpenses);
+    saveExpenses(updatedExpenses, currentMonth);
+  };
 
   const handleMonthChange = (monthKey: string) => {
-    setCurrentMonth(monthKey)
-    loadExpenses(monthKey)
-  }
+    setCurrentMonth(monthKey);
+    loadExpenses(monthKey);
+  };
 
   const handleKeyPress = (e: React.KeyboardEvent, action: () => void) => {
     if (e.key === "Enter") {
-      e.preventDefault()
-      action()
+      e.preventDefault();
+      action();
     }
-  }
+  };
 
   // Gestión de meses
   const handleCreateNewMonth = () => {
     if (newMonthData) {
-      const monthKey = newMonthData
+      const monthKey = newMonthData;
       if (!availableMonths.includes(monthKey)) {
-        localStorage.setItem(`cifra-expenses-${monthKey}`, JSON.stringify([]))
-        loadAvailableMonths()
-        setCurrentMonth(monthKey)
-        loadExpenses(monthKey)
+        localStorage.setItem(`cifra-expenses-${monthKey}`, JSON.stringify([]));
+        loadAvailableMonths();
+        setCurrentMonth(monthKey);
+        loadExpenses(monthKey);
       }
-      setNewMonthData("")
-      setIsNewMonthModalOpen(false)
+      setNewMonthData("");
+      setIsNewMonthModalOpen(false);
     }
-  }
+  };
 
   // CRUD Categorías
   const handleAddCategory = () => {
@@ -416,23 +525,23 @@ export default function CifraApp() {
         name: categoryFormData.name,
         icon: categoryFormData.icon,
         color: categoryFormData.color,
-      }
-      const updatedCategories = [...categories, newCategory]
-      saveCategories(updatedCategories)
-      setCategoryFormData({ name: "", icon: "Wallet", color: "#64748b" })
-      setIsCategoryModalOpen(false)
+      };
+      const updatedCategories = [...categories, newCategory];
+      saveCategories(updatedCategories);
+      setCategoryFormData({ name: "", icon: "Wallet", color: "#64748b" });
+      setIsCategoryModalOpen(false);
     }
-  }
+  };
 
   const handleEditCategory = (category: Category) => {
-    setEditingCategory(category)
+    setEditingCategory(category);
     setCategoryFormData({
       name: category.name,
       icon: category.icon,
       color: category.color,
-    })
-    setIsCategoryModalOpen(true)
-  }
+    });
+    setIsCategoryModalOpen(true);
+  };
 
   const handleUpdateCategory = () => {
     if (editingCategory && categoryFormData.name) {
@@ -441,129 +550,156 @@ export default function CifraApp() {
         name: categoryFormData.name,
         icon: categoryFormData.icon,
         color: categoryFormData.color,
-      }
-      const updatedCategories = categories.map((cat) => (cat.id === editingCategory.id ? updatedCategory : cat))
-      saveCategories(updatedCategories)
-      setEditingCategory(null)
-      setCategoryFormData({ name: "", icon: "Wallet", color: "#64748b" })
-      setIsCategoryModalOpen(false)
+      };
+      const updatedCategories = categories.map((cat) =>
+        cat.id === editingCategory.id ? updatedCategory : cat
+      );
+      saveCategories(updatedCategories);
+      setEditingCategory(null);
+      setCategoryFormData({ name: "", icon: "Wallet", color: "#64748b" });
+      setIsCategoryModalOpen(false);
     }
-  }
+  };
 
   const handleDeleteCategory = (categoryId: string) => {
-    const updatedCategories = categories.filter((cat) => cat.id !== categoryId)
-    saveCategories(updatedCategories)
-  }
+    const updatedCategories = categories.filter((cat) => cat.id !== categoryId);
+    saveCategories(updatedCategories);
+  };
 
   const exportToCSV = () => {
     const allData = {
       user,
       categories,
-      expenses: {},
-    }
+      expenses: {} as Record<string, Expense[]>,
+    };
 
-    const keys = Object.keys(localStorage)
+    const keys = Object.keys(localStorage);
     keys.forEach((key) => {
       if (key.startsWith("cifra-expenses-")) {
-        const month = key.replace("cifra-expenses-", "")
-        const monthExpenses = localStorage.getItem(key)
+        const month = key.replace("cifra-expenses-", "");
+        const monthExpenses = localStorage.getItem(key);
         if (monthExpenses) {
-          allData.expenses[month] = JSON.parse(monthExpenses)
+          allData.expenses[month] = JSON.parse(monthExpenses);
         }
       }
-    })
+    });
 
-    const dataStr = JSON.stringify(allData, null, 2)
-    const dataBlob = new Blob([dataStr], { type: "application/json" })
-    const url = URL.createObjectURL(dataBlob)
-    const link = document.createElement("a")
-    link.href = url
-    link.download = `cifra-backup-${new Date().toISOString().slice(0, 10)}.json`
-    link.click()
-    URL.revokeObjectURL(url)
-  }
+    const dataStr = JSON.stringify(allData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `cifra-backup-${new Date()
+      .toISOString()
+      .slice(0, 10)}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   const importFromCSV = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-    const reader = new FileReader()
+    const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const data = JSON.parse(e.target?.result as string)
+        const data = JSON.parse(e.target?.result as string);
 
         if (data.user) {
-          setUser(data.user)
-          localStorage.setItem("cifra-user", JSON.stringify(data.user))
+          setUser(data.user);
+          localStorage.setItem("cifra-user", JSON.stringify(data.user));
         }
 
         if (data.categories) {
-          setCategories(data.categories)
-          localStorage.setItem("cifra-categories", JSON.stringify(data.categories))
+          setCategories(data.categories);
+          localStorage.setItem(
+            "cifra-categories",
+            JSON.stringify(data.categories)
+          );
         }
 
         if (data.expenses) {
           Object.keys(data.expenses).forEach((month) => {
-            localStorage.setItem(`cifra-expenses-${month}`, JSON.stringify(data.expenses[month]))
-          })
-          loadAvailableMonths()
-          loadExpenses(currentMonth)
+            localStorage.setItem(
+              `cifra-expenses-${month}`,
+              JSON.stringify(data.expenses[month])
+            );
+          });
+          loadAvailableMonths();
+          loadExpenses(currentMonth);
         }
 
-        alert("Datos importados correctamente!")
+        alert("Datos importados correctamente!");
       } catch (error) {
-        alert("Error al importar los datos. Verifica que el archivo sea válido.")
+        alert(
+          "Error al importar los datos. Verifica que el archivo sea válido."
+        );
       }
-    }
-    reader.readAsText(file)
-  }
+    };
+    reader.readAsText(file);
+  };
 
   // Cálculos básicos
-  const totalExpenses = expenses.reduce((sum, expense) => sum + expense.importe, 0)
-  const porcentajeGastado = user?.sueldo ? (totalExpenses / user.sueldo) * 100 : 0
-  const ahorroEstimado = user?.sueldo ? user.sueldo - totalExpenses : 0
+  const totalExpenses = expenses.reduce(
+    (sum, expense) => sum + expense.importe,
+    0
+  );
+  const porcentajeGastado = user?.sueldo
+    ? (totalExpenses / user.sueldo) * 100
+    : 0;
+  const ahorroEstimado = user?.sueldo ? user.sueldo - totalExpenses : 0;
 
   const filteredExpenses = expenses.filter(
     (expense) =>
       expense.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      expense.categoria.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+      expense.categoria.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   // Datos para gráficos
   const categoryChartData = categories
     .map((cat) => {
-      const total = expenses.filter((e) => e.categoria === cat.name).reduce((sum, e) => sum + e.importe, 0)
+      const total = expenses
+        .filter((e) => e.categoria === cat.name)
+        .reduce((sum, e) => sum + e.importe, 0);
       return {
         name: cat.name,
         value: total,
         fill: cat.color,
-      }
+      };
     })
-    .filter((item) => item.value > 0)
+    .filter((item) => item.value > 0);
 
   // Nuevo gráfico: Gastos por Tipo
   const expenseTypeChartData = [
     {
       name: "Fijo",
-      value: expenses.filter((e) => e.tipoGasto === "Fijo").reduce((sum, e) => sum + e.importe, 0),
+      value: expenses
+        .filter((e) => e.tipoGasto === "Fijo")
+        .reduce((sum, e) => sum + e.importe, 0),
       fill: "#3b82f6",
     },
     {
       name: "Variable",
-      value: expenses.filter((e) => e.tipoGasto === "Variable").reduce((sum, e) => sum + e.importe, 0),
+      value: expenses
+        .filter((e) => e.tipoGasto === "Variable")
+        .reduce((sum, e) => sum + e.importe, 0),
       fill: "#64748b",
     },
     {
       name: "Cuotas",
-      value: expenses.filter((e) => e.tipoGasto === "Cuotas").reduce((sum, e) => sum + e.importe, 0),
+      value: expenses
+        .filter((e) => e.tipoGasto === "Cuotas")
+        .reduce((sum, e) => sum + e.importe, 0),
       fill: "#6b7280",
     },
     {
       name: "Única vez",
-      value: expenses.filter((e) => e.tipoGasto === "Única vez").reduce((sum, e) => sum + e.importe, 0),
+      value: expenses
+        .filter((e) => e.tipoGasto === "Única vez")
+        .reduce((sum, e) => sum + e.importe, 0),
       fill: "#9ca3af",
     },
-  ].filter((item) => item.value > 0)
+  ].filter((item) => item.value > 0);
 
   // Animaciones
   const containerVariants = {
@@ -575,7 +711,7 @@ export default function CifraApp() {
         staggerChildren: 0.1,
       },
     },
-  }
+  };
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -586,7 +722,7 @@ export default function CifraApp() {
         duration: 0.3,
       },
     },
-  }
+  };
 
   const cardVariants = {
     hidden: { opacity: 0, scale: 0.95 },
@@ -597,71 +733,485 @@ export default function CifraApp() {
         duration: 0.3,
       },
     },
-  }
+  };
 
   // PANTALLA LANDING
   if (currentScreen === "landing") {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4 }}
-          className="w-full max-w-md"
-        >
-          <Card className="border shadow-sm enhanced-card smooth-transition">
-            <CardHeader className="text-center space-y-4 pb-8">
-              <motion.div
-                initial={{ scale: 0, rotate: -180 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                className="mx-auto w-16 h-16 bg-primary rounded-2xl flex items-center justify-center"
-              >
-                <BarChart3 className="w-8 h-8 text-primary-foreground" />
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.4 }}
-              >
-                <CardTitle className="text-3xl font-bold">Cifra</CardTitle>
-                <CardDescription className="text-base">Tu plata, bajo control.</CardDescription>
-              </motion.div>
-            </CardHeader>
-            <CardContent className="space-y-6">
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <header className="border-b">
+          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <BarChart3 className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <span className="text-xl font-bold">Cifra</span>
+            </div>
+            <ThemeToggle />
+          </div>
+        </header>
+
+        {/* Hero Section */}
+        <section className="py-20 px-4">
+          <div className="container mx-auto max-w-6xl">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4, duration: 0.4 }}
-                className="space-y-4"
+                transition={{ duration: 0.6 }}
+                className="space-y-8"
               >
-                <Label htmlFor="name" className="text-sm font-medium">
-                  ¿Cómo te llamas?
-                </Label>
-                <Input
-                  id="name"
-                  placeholder="Tu nombre"
-                  value={userName}
-                  onChange={(e) => setUserName(e.target.value)}
-                  className="h-12"
-                  onKeyPress={(e) => handleKeyPress(e, handleStartApp)}
-                />
+                <div className="space-y-4">
+                  <h1 className="text-4xl md:text-6xl font-bold leading-tight">
+                    Tu plata, <br />
+                    <span className="text-primary">bajo control</span>
+                  </h1>
+                  <p className="text-xl text-muted-foreground leading-relaxed">
+                    Cifra es una app para ayudarte a entender y organizar tus
+                    gastos mensuales de forma simple, rápida y visual.
+                  </p>
+                </div>
+
+                <div className="space-y-4 max-w-md">
+                  <Label htmlFor="name" className="text-sm font-medium">
+                    ¿Cómo te llamas?
+                  </Label>
+                  <Input
+                    id="name"
+                    placeholder="Tu nombre"
+                    value={userName}
+                    onChange={(e) => setUserName(e.target.value)}
+                    className="h-12"
+                    onKeyPress={(e) => handleKeyPress(e, handleStartApp)}
+                  />
+                  <Button
+                    onClick={handleStartApp}
+                    className="w-full h-12 font-medium"
+                    disabled={!userName.trim()}
+                  >
+                    Empezar con Cifra
+                  </Button>
+                </div>
+
+                <div className="flex items-center space-x-6 text-sm text-muted-foreground">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span>Sin registros</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span>Datos en tu dispositivo</span>
+                  </div>
+                </div>
               </motion.div>
 
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5, duration: 0.4 }}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="grid grid-cols-2 gap-4"
               >
-                <Button onClick={handleStartApp} className="w-full h-12 font-medium" disabled={!userName.trim()}>
-                  Empezar con Cifra
-                </Button>
+                <motion.div
+                  whileHover={{ y: -4, scale: 1.01 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
+                  <Card className="p-6 space-y-4 cursor-pointer hover:shadow-lg transition-shadow duration-300">
+                    <div className="flex items-center justify-between">
+                      <TrendingUp className="w-8 h-8 text-green-500" />
+                      <span className="text-2xl font-bold">
+                        <AnimatedNumber end={85} suffix="%" />
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        Control mensual
+                      </p>
+                      <p className="text-lg font-semibold">
+                        <AnimatedNumber end={45000} prefix="$" />
+                      </p>
+                    </div>
+                  </Card>
+                </motion.div>
+
+                <motion.div
+                  whileHover={{ y: -4, scale: 1.01 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
+                  <Card className="p-6 space-y-4 cursor-pointer hover:shadow-lg transition-shadow duration-300">
+                    <div className="flex items-center justify-between">
+                      <PieChartIcon className="w-8 h-8 text-blue-500" />
+                      <span className="text-2xl font-bold">
+                        <AnimatedNumber end={9} />
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        Categorías
+                      </p>
+                      <p className="text-lg font-semibold">Organizadas</p>
+                    </div>
+                  </Card>
+                </motion.div>
+
+                <motion.div
+                  whileHover={{ y: -4, scale: 1.01 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  className="col-span-2"
+                >
+                  <Card className="p-6 space-y-4 cursor-pointer hover:shadow-lg transition-shadow duration-300">
+                    <div className="flex items-center justify-between">
+                      <BarChart3 className="w-8 h-8 text-purple-500" />
+                      <TrendingUp className="w-6 h-6 text-green-500" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">
+                          Ahorro este mes
+                        </span>
+                        <span className="text-sm font-medium">
+                          <AnimatedNumber end={15} prefix="+" suffix="%" />
+                        </span>
+                      </div>
+                      <div className="w-full bg-muted rounded-full h-2">
+                        <motion.div
+                          className="bg-green-500 h-2 rounded-full"
+                          initial={{ width: 0 }}
+                          animate={{ width: "65%" }}
+                          transition={{ duration: 2, delay: 0.5 }}
+                        />
+                      </div>
+                    </div>
+                  </Card>
+                </motion.div>
               </motion.div>
-            </CardContent>
-          </Card>
-        </motion.div>
+            </div>
+          </div>
+        </section>
+
+        {/* Features Section */}
+        <section className="py-20 px-4 bg-muted/30">
+          <div className="container mx-auto max-w-6xl">
+            <ScrollAnimatedDiv className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                ¿Qué podés hacer con Cifra?
+              </h2>
+              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+                Todo lo que necesitás para controlar tus finanzas personales en
+                una sola app
+              </p>
+            </ScrollAnimatedDiv>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <ScrollAnimatedDiv delay={0.1}>
+                <motion.div
+                  whileHover={{ y: -3, scale: 1.01 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
+                  <Card className="p-6 h-full hover:shadow-xl transition-shadow duration-300 cursor-pointer">
+                    <div className="space-y-4">
+                      <motion.div
+                        className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center"
+                        whileHover={{ rotate: 180 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <Plus className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                      </motion.div>
+                      <h3 className="text-xl font-semibold">
+                        Registrar gastos
+                      </h3>
+                      <p className="text-muted-foreground">
+                        Elegí categoría, tipo de gasto, medio de pago y fecha.
+                        Simple y rápido.
+                      </p>
+                    </div>
+                  </Card>
+                </motion.div>
+              </ScrollAnimatedDiv>
+
+              <ScrollAnimatedDiv delay={0.2}>
+                <motion.div
+                  whileHover={{ y: -3, scale: 1.01 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
+                  <Card className="p-6 h-full hover:shadow-xl transition-shadow duration-300 cursor-pointer">
+                    <div className="space-y-4">
+                      <motion.div
+                        className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center"
+                        whileHover={{ rotate: 180 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <BarChart3 className="w-6 h-6 text-green-600 dark:text-green-400" />
+                      </motion.div>
+                      <h3 className="text-xl font-semibold">
+                        Ver finanzas mensuales
+                      </h3>
+                      <p className="text-muted-foreground">
+                        Ingresos, egresos, ahorro estimado y cuánto representa
+                        cada gasto sobre tu sueldo.
+                      </p>
+                    </div>
+                  </Card>
+                </motion.div>
+              </ScrollAnimatedDiv>
+
+              <ScrollAnimatedDiv delay={0.3}>
+                <motion.div
+                  whileHover={{ y: -3, scale: 1.01 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
+                  <Card className="p-6 h-full hover:shadow-xl transition-shadow duration-300 cursor-pointer">
+                    <div className="space-y-4">
+                      <motion.div
+                        className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center"
+                        whileHover={{ rotate: 180 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <PieChartIcon className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                      </motion.div>
+                      <h3 className="text-xl font-semibold">
+                        Visualizar datos
+                      </h3>
+                      <p className="text-muted-foreground">
+                        Gráficos circulares por categoría, actividad reciente y
+                        comparaciones.
+                      </p>
+                    </div>
+                  </Card>
+                </motion.div>
+              </ScrollAnimatedDiv>
+
+              <ScrollAnimatedDiv delay={0.4}>
+                <motion.div
+                  whileHover={{ y: -3, scale: 1.01 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
+                  <Card className="p-6 h-full hover:shadow-xl transition-shadow duration-300 cursor-pointer">
+                    <div className="space-y-4">
+                      <motion.div
+                        className="w-12 h-12 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center"
+                        whileHover={{ rotate: 180 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <CalendarPlus className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                      </motion.div>
+                      <h3 className="text-xl font-semibold">
+                        Crear nuevos meses
+                      </h3>
+                      <p className="text-muted-foreground">
+                        Los gastos fijos y en cuotas se mantienen
+                        automáticamente.
+                      </p>
+                    </div>
+                  </Card>
+                </motion.div>
+              </ScrollAnimatedDiv>
+
+              <ScrollAnimatedDiv delay={0.5}>
+                <motion.div
+                  whileHover={{ y: -3, scale: 1.01 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
+                  <Card className="p-6 h-full hover:shadow-xl transition-shadow duration-300 cursor-pointer">
+                    <div className="space-y-4">
+                      <motion.div
+                        className="w-12 h-12 bg-cyan-100 dark:bg-cyan-900 rounded-lg flex items-center justify-center"
+                        whileHover={{ rotate: 180 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <Settings className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
+                      </motion.div>
+                      <h3 className="text-xl font-semibold">
+                        Guardado automático
+                      </h3>
+                      <p className="text-muted-foreground">
+                        No necesitás registrarte. Todo se guarda en tu
+                        dispositivo.
+                      </p>
+                    </div>
+                  </Card>
+                </motion.div>
+              </ScrollAnimatedDiv>
+
+              <ScrollAnimatedDiv delay={0.6}>
+                <motion.div
+                  whileHover={{ y: -3, scale: 1.01 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
+                  <Card className="p-6 h-full hover:shadow-xl transition-shadow duration-300 cursor-pointer">
+                    <div className="space-y-4">
+                      <motion.div
+                        className="w-12 h-12 bg-red-100 dark:bg-red-900 rounded-lg flex items-center justify-center"
+                        whileHover={{ rotate: 180 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <ArrowRightLeft className="w-6 h-6 text-red-600 dark:text-red-400" />
+                      </motion.div>
+                      <h3 className="text-xl font-semibold">
+                        Importar y exportar
+                      </h3>
+                      <p className="text-muted-foreground">
+                        Hacé backups o llevá tus finanzas a otra herramienta.
+                      </p>
+                    </div>
+                  </Card>
+                </motion.div>
+              </ScrollAnimatedDiv>
+            </div>
+          </div>
+        </section>
+
+        {/* Target Audience Section */}
+        <section className="py-20 px-4">
+          <div className="container mx-auto max-w-4xl text-center">
+            <ScrollAnimatedDiv className="space-y-8">
+              <h2 className="text-3xl md:text-4xl font-bold">
+                ¿Para quién es esta app?
+              </h2>
+
+              <div className="grid md:grid-cols-3 gap-8 mt-12">
+                <ScrollAnimatedDiv delay={0.1}>
+                  <motion.div
+                    whileHover={{ y: -3, scale: 1.02 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  >
+                    <Card className="p-6 text-center hover:shadow-xl transition-shadow duration-300 cursor-pointer">
+                      <motion.div
+                        className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full mx-auto mb-4 flex items-center justify-center"
+                        whileHover={{ scale: 1.05, rotate: 3 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <Search className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                      </motion.div>
+                      <h3 className="text-lg font-semibold mb-2">
+                        Entender gastos
+                      </h3>
+                      <p className="text-muted-foreground">
+                        Personas que quieren entender en qué gastan
+                      </p>
+                    </Card>
+                  </motion.div>
+                </ScrollAnimatedDiv>
+
+                <ScrollAnimatedDiv delay={0.2}>
+                  <motion.div
+                    whileHover={{ y: -3, scale: 1.02 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  >
+                    <Card className="p-6 text-center hover:shadow-xl transition-shadow duration-300 cursor-pointer">
+                      <motion.div
+                        className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full mx-auto mb-4 flex items-center justify-center"
+                        whileHover={{ scale: 1.05, rotate: 3 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <TrendingUp className="w-8 h-8 text-green-600 dark:text-green-400" />
+                      </motion.div>
+                      <h3 className="text-lg font-semibold mb-2">Ahorrar</h3>
+                      <p className="text-muted-foreground">
+                        Quienes buscan ahorrar todos los meses
+                      </p>
+                    </Card>
+                  </motion.div>
+                </ScrollAnimatedDiv>
+
+                <ScrollAnimatedDiv delay={0.3}>
+                  <motion.div
+                    whileHover={{ y: -3, scale: 1.02 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  >
+                    <Card className="p-6 text-center hover:shadow-xl transition-shadow duration-300 cursor-pointer">
+                      <motion.div
+                        className="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full mx-auto mb-4 flex items-center justify-center"
+                        whileHover={{ scale: 1.05, rotate: 3 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <Heart className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+                      </motion.div>
+                      <h3 className="text-lg font-semibold mb-2">
+                        Simplicidad
+                      </h3>
+                      <p className="text-muted-foreground">
+                        Los que quieren control sin complicaciones
+                      </p>
+                    </Card>
+                  </motion.div>
+                </ScrollAnimatedDiv>
+              </div>
+            </ScrollAnimatedDiv>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="py-20 px-4 bg-primary text-primary-foreground">
+          <div className="container mx-auto max-w-4xl text-center">
+            <ScrollAnimatedDiv className="space-y-8">
+              <motion.h2
+                className="text-3xl md:text-4xl font-bold"
+                initial={{ scale: 0.95 }}
+                whileInView={{ scale: 1 }}
+                transition={{ duration: 0.5 }}
+              >
+                Cifra te muestra lo que importa
+              </motion.h2>
+              <motion.p
+                className="text-xl opacity-90"
+                initial={{ opacity: 0.5 }}
+                whileInView={{ opacity: 0.9 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+              >
+                💡 Visual. Rápida. Sin vueltas. Sin logins.
+              </motion.p>
+
+              <motion.div
+                className="space-y-4 max-w-md mx-auto"
+                initial={{ y: 30, opacity: 0 }}
+                whileInView={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+              >
+                <Input
+                  placeholder="Tu nombre"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  className="h-12 bg-background text-foreground"
+                  onKeyPress={(e) => handleKeyPress(e, handleStartApp)}
+                />
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                >
+                  <Button
+                    onClick={handleStartApp}
+                    variant="secondary"
+                    className="w-full h-12 font-medium"
+                    disabled={!userName.trim()}
+                  >
+                    Empezar ahora
+                  </Button>
+                </motion.div>
+              </motion.div>
+            </ScrollAnimatedDiv>
+          </div>
+        </section>
+
+        {/* Footer */}
+        <footer className="py-8 px-4 border-t">
+          <div className="container mx-auto max-w-6xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
+                  <BarChart3 className="w-4 h-4 text-primary-foreground" />
+                </div>
+                <span className="font-semibold">Cifra</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Tu plata, bajo control.
+              </p>
+            </div>
+          </div>
+        </footer>
       </div>
-    )
+    );
   }
 
   // PANTALLA SETUP
@@ -689,8 +1239,12 @@ export default function CifraApp() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.4 }}
               >
-                <CardTitle className="text-2xl font-bold">¡Hola, {user?.nombre}!</CardTitle>
-                <CardDescription>Configuremos tu perfil financiero</CardDescription>
+                <CardTitle className="text-2xl font-bold">
+                  ¡Hola, {user?.nombre}!
+                </CardTitle>
+                <CardDescription>
+                  Configuremos tu perfil financiero
+                </CardDescription>
               </motion.div>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -708,7 +1262,9 @@ export default function CifraApp() {
                   type="number"
                   placeholder="50000"
                   value={setupData.sueldo}
-                  onChange={(e) => setSetupData({ ...setupData, sueldo: e.target.value })}
+                  onChange={(e) =>
+                    setSetupData({ ...setupData, sueldo: e.target.value })
+                  }
                   className="h-12"
                   onKeyPress={(e) => handleKeyPress(e, handleCompleteSetup)}
                 />
@@ -723,7 +1279,9 @@ export default function CifraApp() {
                 <Label className="text-sm font-medium">Tipo de sueldo</Label>
                 <Select
                   value={setupData.tipoSueldo}
-                  onValueChange={(value: "Fijo" | "Variable") => setSetupData({ ...setupData, tipoSueldo: value })}
+                  onValueChange={(value: "Fijo" | "Variable") =>
+                    setSetupData({ ...setupData, tipoSueldo: value })
+                  }
                 >
                   <SelectTrigger className="h-12">
                     <SelectValue />
@@ -743,7 +1301,11 @@ export default function CifraApp() {
                 <Button
                   onClick={handleCompleteSetup}
                   className="w-full h-12 font-medium"
-                  disabled={!setupData.sueldo || setupData.sueldo === "" || Number.parseFloat(setupData.sueldo) <= 0}
+                  disabled={
+                    !setupData.sueldo ||
+                    setupData.sueldo === "" ||
+                    Number.parseFloat(setupData.sueldo) <= 0
+                  }
                 >
                   Continuar
                 </Button>
@@ -752,7 +1314,7 @@ export default function CifraApp() {
           </Card>
         </motion.div>
       </div>
-    )
+    );
   }
 
   // DASHBOARD PRINCIPAL
@@ -764,7 +1326,12 @@ export default function CifraApp() {
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="h-full">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+          className="h-full"
+        >
           <div className="flex items-center justify-between p-6 border-b">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
@@ -772,20 +1339,31 @@ export default function CifraApp() {
               </div>
               <span className="text-lg font-semibold">Cifra</span>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => setIsSidebarOpen(false)} className="lg:hidden">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsSidebarOpen(false)}
+              className="lg:hidden"
+            >
               <X className="w-4 h-4" />
             </Button>
           </div>
 
           <nav className="p-4 space-y-1">
-            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Menu</div>
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+              Menu
+            </div>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, staggerChildren: 0.1 }}
               className="space-y-1"
             >
-              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1 }}
+              >
                 <Button
                   variant={currentSection === "overview" ? "default" : "ghost"}
                   className="w-full justify-start h-10 smooth-transition enhanced-hover"
@@ -796,7 +1374,11 @@ export default function CifraApp() {
                 </Button>
               </motion.div>
 
-              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+              >
                 <Button
                   variant={currentSection === "months" ? "default" : "ghost"}
                   className="w-full justify-start h-10 smooth-transition enhanced-hover"
@@ -807,9 +1389,15 @@ export default function CifraApp() {
                 </Button>
               </motion.div>
 
-              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+              >
                 <Button
-                  variant={currentSection === "categories" ? "default" : "ghost"}
+                  variant={
+                    currentSection === "categories" ? "default" : "ghost"
+                  }
                   className="w-full justify-start h-10 smooth-transition enhanced-hover"
                   onClick={() => setCurrentSection("categories")}
                 >
@@ -818,7 +1406,11 @@ export default function CifraApp() {
                 </Button>
               </motion.div>
 
-              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 }}
+              >
                 <Button
                   variant={currentSection === "settings" ? "default" : "ghost"}
                   className="w-full justify-start h-10 smooth-transition enhanced-hover"
@@ -845,7 +1437,9 @@ export default function CifraApp() {
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{user?.nombre}</p>
-                <p className="text-xs text-muted-foreground">Sueldo {user?.tipoSueldo}</p>
+                <p className="text-xs text-muted-foreground">
+                  Sueldo {user?.tipoSueldo}
+                </p>
               </div>
             </motion.div>
             <Button
@@ -878,7 +1472,12 @@ export default function CifraApp() {
         <header className="enhanced-header px-4 lg:px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={() => setIsSidebarOpen(true)} className="lg:hidden">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsSidebarOpen(true)}
+                className="lg:hidden"
+              >
                 <Menu className="w-5 h-5" />
               </Button>
               <motion.div
@@ -892,7 +1491,9 @@ export default function CifraApp() {
                   {currentSection === "categories" && "Categorías"}
                   {currentSection === "settings" && "Configuración"}
                 </h1>
-                <p className="text-xs lg:text-sm text-muted-foreground">{getCurrentDateFormatted()}</p>
+                <p className="text-xs lg:text-sm text-muted-foreground">
+                  {getCurrentDateFormatted()}
+                </p>
               </motion.div>
             </div>
 
@@ -907,7 +1508,13 @@ export default function CifraApp() {
                 />
               </div>
 
-              <input type="file" accept=".json" onChange={importFromCSV} className="hidden" id="import-file" />
+              <input
+                type="file"
+                accept=".json"
+                onChange={importFromCSV}
+                className="hidden"
+                id="import-file"
+              />
               <Button
                 variant="outline"
                 size="sm"
@@ -917,7 +1524,12 @@ export default function CifraApp() {
                 <Upload className="w-4 h-4 mr-2" />
                 Import
               </Button>
-              <Button variant="outline" size="sm" onClick={exportToCSV} className="hidden lg:flex">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={exportToCSV}
+                className="hidden lg:flex"
+              >
                 <Download className="w-4 h-4 mr-2" />
                 Export
               </Button>
@@ -943,10 +1555,19 @@ export default function CifraApp() {
                     <Card className="border shadow-sm enhanced-card smooth-transition">
                       <CardContent className="p-4 lg:p-6">
                         <div>
-                          <p className="text-sm font-medium text-muted-foreground">Ahorro Estimado</p>
-                          <p className="text-xl lg:text-2xl font-bold mt-1">${ahorroEstimado.toLocaleString()}</p>
+                          <p className="text-sm font-medium text-muted-foreground">
+                            Ahorro Estimado
+                          </p>
+                          <p className="text-xl lg:text-2xl font-bold mt-1">
+                            ${ahorroEstimado.toLocaleString()}
+                          </p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            {user?.sueldo ? ((ahorroEstimado / user.sueldo) * 100).toFixed(1) : 0}% del sueldo
+                            {user?.sueldo
+                              ? ((ahorroEstimado / user.sueldo) * 100).toFixed(
+                                  1
+                                )
+                              : 0}
+                            % del sueldo
                           </p>
                         </div>
                       </CardContent>
@@ -957,10 +1578,17 @@ export default function CifraApp() {
                     <Card className="border shadow-sm enhanced-card smooth-transition">
                       <CardContent className="p-4 lg:p-6">
                         <div className="flex items-center justify-between mb-2">
-                          <p className="text-sm font-medium text-muted-foreground">Gastos del Mes</p>
-                          <Select value={currentMonth} onValueChange={handleMonthChange}>
+                          <p className="text-sm font-medium text-muted-foreground">
+                            Gastos del Mes
+                          </p>
+                          <Select
+                            value={currentMonth}
+                            onValueChange={handleMonthChange}
+                          >
                             <SelectTrigger className="w-auto h-auto p-1 border-0 bg-transparent text-xs">
-                              <SelectValue>{formatDateShort(currentMonth)}</SelectValue>
+                              <SelectValue>
+                                {formatDateShort(currentMonth)}
+                              </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
                               {availableMonths.map((month) => (
@@ -971,14 +1599,18 @@ export default function CifraApp() {
                             </SelectContent>
                           </Select>
                         </div>
-                        <p className="text-xl lg:text-2xl font-bold">${totalExpenses.toLocaleString()}</p>
+                        <p className="text-xl lg:text-2xl font-bold">
+                          ${totalExpenses.toLocaleString()}
+                        </p>
                         <div className="flex items-center gap-1 mt-1">
                           {porcentajeGastado > 50 ? (
                             <TrendingUp className="w-3 h-3 text-red-500" />
                           ) : (
                             <TrendingDown className="w-3 h-3 text-green-500" />
                           )}
-                          <p className="text-xs text-muted-foreground">{porcentajeGastado.toFixed(1)}% del sueldo</p>
+                          <p className="text-xs text-muted-foreground">
+                            {porcentajeGastado.toFixed(1)}% del sueldo
+                          </p>
                         </div>
                       </CardContent>
                     </Card>
@@ -988,10 +1620,16 @@ export default function CifraApp() {
                     <Card className="border shadow-sm enhanced-card smooth-transition">
                       <CardContent className="p-4 lg:p-6">
                         <div className="flex items-center justify-between mb-2">
-                          <p className="text-sm font-medium text-muted-foreground">Ingresos</p>
+                          <p className="text-sm font-medium text-muted-foreground">
+                            Ingresos
+                          </p>
                         </div>
-                        <p className="text-xl lg:text-2xl font-bold">${user?.sueldo.toLocaleString()}</p>
-                        <p className="text-xs text-muted-foreground mt-1">Sueldo {user?.tipoSueldo}</p>
+                        <p className="text-xl lg:text-2xl font-bold">
+                          ${user?.sueldo.toLocaleString()}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Sueldo {user?.tipoSueldo}
+                        </p>
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -1002,7 +1640,9 @@ export default function CifraApp() {
                   <motion.div variants={cardVariants}>
                     <Card className="border shadow-sm enhanced-card smooth-transition">
                       <CardHeader className="pb-4">
-                        <CardTitle className="text-lg font-semibold">Gastos por Categoría</CardTitle>
+                        <CardTitle className="text-lg font-semibold">
+                          Gastos por Categoría
+                        </CardTitle>
                       </CardHeader>
                       <CardContent>
                         {categoryChartData.length > 0 ? (
@@ -1021,15 +1661,22 @@ export default function CifraApp() {
                                   cx="50%"
                                   cy="50%"
                                   labelLine={false}
-                                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                  label={({ name, percent }) =>
+                                    `${name} ${(percent * 100).toFixed(0)}%`
+                                  }
                                   outerRadius={80}
                                   dataKey="value"
                                 >
                                   {categoryChartData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                                    <Cell
+                                      key={`cell-${index}`}
+                                      fill={entry.fill}
+                                    />
                                   ))}
                                 </Pie>
-                                <ChartTooltip content={<ChartTooltipContent />} />
+                                <ChartTooltip
+                                  content={<ChartTooltipContent />}
+                                />
                               </PieChart>
                             </ResponsiveContainer>
                           </ChartContainer>
@@ -1048,7 +1695,9 @@ export default function CifraApp() {
                   <motion.div variants={cardVariants}>
                     <Card className="border shadow-sm enhanced-card smooth-transition">
                       <CardHeader className="pb-4">
-                        <CardTitle className="text-lg font-semibold">Gastos por Tipo</CardTitle>
+                        <CardTitle className="text-lg font-semibold">
+                          Gastos por Tipo
+                        </CardTitle>
                       </CardHeader>
                       <CardContent>
                         {expenseTypeChartData.length > 0 ? (
@@ -1065,8 +1714,13 @@ export default function CifraApp() {
                                 <CartesianGrid strokeDasharray="3 3" />
                                 <XAxis dataKey="name" />
                                 <YAxis />
-                                <ChartTooltip content={<ChartTooltipContent />} />
-                                <Bar dataKey="value" fill="var(--color-value)" />
+                                <ChartTooltip
+                                  content={<ChartTooltipContent />}
+                                />
+                                <Bar
+                                  dataKey="value"
+                                  fill="var(--color-value)"
+                                />
                               </BarChart>
                             </ResponsiveContainer>
                           </ChartContainer>
@@ -1084,7 +1738,10 @@ export default function CifraApp() {
                 </div>
 
                 {/* Botón agregar gasto */}
-                <motion.div variants={itemVariants} className="flex justify-end">
+                <motion.div
+                  variants={itemVariants}
+                  className="flex justify-end"
+                >
                   <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                     <DialogTrigger asChild>
                       <Button>
@@ -1095,7 +1752,9 @@ export default function CifraApp() {
                     <DialogContent className="sm:max-w-md">
                       <DialogHeader>
                         <DialogTitle>Agregar Nuevo Gasto</DialogTitle>
-                        <DialogDescription>Completa los datos del gasto que quieres registrar</DialogDescription>
+                        <DialogDescription>
+                          Completa los datos del gasto que quieres registrar
+                        </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
                         <div>
@@ -1104,15 +1763,24 @@ export default function CifraApp() {
                             id="expense-name"
                             placeholder="Ej: Supermercado"
                             value={newExpense.nombre}
-                            onChange={(e) => setNewExpense({ ...newExpense, nombre: e.target.value })}
-                            onKeyPress={(e) => handleKeyPress(e, handleAddExpense)}
+                            onChange={(e) =>
+                              setNewExpense({
+                                ...newExpense,
+                                nombre: e.target.value,
+                              })
+                            }
+                            onKeyPress={(e) =>
+                              handleKeyPress(e, handleAddExpense)
+                            }
                           />
                         </div>
                         <div>
                           <Label htmlFor="category">Categoría</Label>
                           <Select
                             value={newExpense.categoria}
-                            onValueChange={(value) => setNewExpense({ ...newExpense, categoria: value })}
+                            onValueChange={(value) =>
+                              setNewExpense({ ...newExpense, categoria: value })
+                            }
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Selecciona una categoría" />
@@ -1133,15 +1801,24 @@ export default function CifraApp() {
                             type="number"
                             placeholder="0.00"
                             value={newExpense.importe}
-                            onChange={(e) => setNewExpense({ ...newExpense, importe: e.target.value })}
-                            onKeyPress={(e) => handleKeyPress(e, handleAddExpense)}
+                            onChange={(e) =>
+                              setNewExpense({
+                                ...newExpense,
+                                importe: e.target.value,
+                              })
+                            }
+                            onKeyPress={(e) =>
+                              handleKeyPress(e, handleAddExpense)
+                            }
                           />
                         </div>
                         <div>
                           <Label htmlFor="expense-type">Tipo de Gasto</Label>
                           <Select
                             value={newExpense.tipoGasto}
-                            onValueChange={(value) => setNewExpense({ ...newExpense, tipoGasto: value })}
+                            onValueChange={(value) =>
+                              setNewExpense({ ...newExpense, tipoGasto: value })
+                            }
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Selecciona el tipo" />
@@ -1150,20 +1827,31 @@ export default function CifraApp() {
                               <SelectItem value="Fijo">Fijo</SelectItem>
                               <SelectItem value="Variable">Variable</SelectItem>
                               <SelectItem value="Cuotas">Cuotas</SelectItem>
-                              <SelectItem value="Única vez">Única vez</SelectItem>
+                              <SelectItem value="Única vez">
+                                Única vez
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         {newExpense.tipoGasto === "Cuotas" && (
                           <div>
-                            <Label htmlFor="installments">Número de Cuotas</Label>
+                            <Label htmlFor="installments">
+                              Número de Cuotas
+                            </Label>
                             <Input
                               id="installments"
                               type="number"
                               placeholder="12"
                               value={newExpense.cuotas}
-                              onChange={(e) => setNewExpense({ ...newExpense, cuotas: e.target.value })}
-                              onKeyPress={(e) => handleKeyPress(e, handleAddExpense)}
+                              onChange={(e) =>
+                                setNewExpense({
+                                  ...newExpense,
+                                  cuotas: e.target.value,
+                                })
+                              }
+                              onKeyPress={(e) =>
+                                handleKeyPress(e, handleAddExpense)
+                              }
                             />
                           </div>
                         )}
@@ -1171,7 +1859,9 @@ export default function CifraApp() {
                           <Label htmlFor="payment-method">Medio de Pago</Label>
                           <Select
                             value={newExpense.medioPago}
-                            onValueChange={(value) => setNewExpense({ ...newExpense, medioPago: value })}
+                            onValueChange={(value) =>
+                              setNewExpense({ ...newExpense, medioPago: value })
+                            }
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Selecciona el medio" />
@@ -1179,7 +1869,9 @@ export default function CifraApp() {
                             <SelectContent>
                               <SelectItem value="Tarjeta">Tarjeta</SelectItem>
                               <SelectItem value="Cash">Cash</SelectItem>
-                              <SelectItem value="Transferencia">Transferencia</SelectItem>
+                              <SelectItem value="Transferencia">
+                                Transferencia
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -1195,14 +1887,20 @@ export default function CifraApp() {
                 <motion.div variants={cardVariants}>
                   <Card className="border shadow-sm enhanced-card smooth-transition">
                     <CardHeader>
-                      <CardTitle className="text-lg font-semibold">Actividad Reciente</CardTitle>
+                      <CardTitle className="text-lg font-semibold">
+                        Actividad Reciente
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
                       {filteredExpenses.length === 0 ? (
                         <div className="text-center py-12 text-muted-foreground">
                           <Wallet className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                          <p className="text-lg font-medium">No hay gastos registrados</p>
-                          <p className="text-sm">¡Agregá tu primer gasto para comenzar!</p>
+                          <p className="text-lg font-medium">
+                            No hay gastos registrados
+                          </p>
+                          <p className="text-sm">
+                            ¡Agregá tu primer gasto para comenzar!
+                          </p>
                         </div>
                       ) : (
                         <div className="overflow-x-auto">
@@ -1210,90 +1908,135 @@ export default function CifraApp() {
                             <TableHeader>
                               <TableRow>
                                 <TableHead>Gasto</TableHead>
-                                <TableHead className="hidden md:table-cell">Categoría</TableHead>
-                                <TableHead className="hidden lg:table-cell">Tipo</TableHead>
-                                <TableHead className="hidden lg:table-cell">Medio de Pago</TableHead>
-                                <TableHead className="hidden sm:table-cell">Fecha</TableHead>
-                                <TableHead className="text-right">Importe</TableHead>
-                                <TableHead className="text-right">Acciones</TableHead>
+                                <TableHead className="hidden md:table-cell">
+                                  Categoría
+                                </TableHead>
+                                <TableHead className="hidden lg:table-cell">
+                                  Tipo
+                                </TableHead>
+                                <TableHead className="hidden lg:table-cell">
+                                  Medio de Pago
+                                </TableHead>
+                                <TableHead className="hidden sm:table-cell">
+                                  Fecha
+                                </TableHead>
+                                <TableHead className="text-right">
+                                  Importe
+                                </TableHead>
+                                <TableHead className="text-right">
+                                  Acciones
+                                </TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
-                              {filteredExpenses.slice(0, 10).map((expense, index) => {
-                                const IconComponent =
-                                  CATEGORY_ICONS[expense.categoria as keyof typeof CATEGORY_ICONS] || Wallet
-                                return (
-                                  <TableRow key={expense.id}>
-                                    <TableCell>
-                                      <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">
-                                          <IconComponent className="w-4 h-4" />
-                                        </div>
-                                        <div>
-                                          <p className="font-medium">{expense.nombre}</p>
-                                          {expense.cuotas && (
-                                            <p className="text-xs text-muted-foreground">{expense.cuotas} cuotas</p>
-                                          )}
-                                          <div className="md:hidden flex gap-1 mt-1">
-                                            <Badge variant="secondary" className="text-xs">
-                                              {expense.categoria}
-                                            </Badge>
+                              {filteredExpenses
+                                .slice(0, 10)
+                                .map((expense, index) => {
+                                  const IconComponent =
+                                    CATEGORY_ICONS[
+                                      expense.categoria as keyof typeof CATEGORY_ICONS
+                                    ] || Wallet;
+                                  return (
+                                    <TableRow key={expense.id}>
+                                      <TableCell>
+                                        <div className="flex items-center gap-3">
+                                          <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">
+                                            <IconComponent className="w-4 h-4" />
+                                          </div>
+                                          <div>
+                                            <p className="font-medium">
+                                              {expense.nombre}
+                                            </p>
+                                            {expense.cuotas && (
+                                              <p className="text-xs text-muted-foreground">
+                                                {expense.cuotas} cuotas
+                                              </p>
+                                            )}
+                                            <div className="md:hidden flex gap-1 mt-1">
+                                              <Badge
+                                                variant="secondary"
+                                                className="text-xs"
+                                              >
+                                                {expense.categoria}
+                                              </Badge>
+                                            </div>
                                           </div>
                                         </div>
-                                      </div>
-                                    </TableCell>
-                                    <TableCell className="hidden md:table-cell">
-                                      <Badge variant="secondary">{expense.categoria}</Badge>
-                                    </TableCell>
-                                    <TableCell className="hidden lg:table-cell">
-                                      <Badge variant="outline">{expense.tipoGasto}</Badge>
-                                    </TableCell>
-                                    <TableCell className="hidden lg:table-cell">
-                                      <div className="flex items-center gap-2">
-                                        {expense.medioPago === "Tarjeta" && <CreditCard className="w-4 h-4" />}
-                                        {expense.medioPago === "Cash" && <Banknote className="w-4 h-4" />}
-                                        {expense.medioPago === "Transferencia" && (
-                                          <ArrowRightLeft className="w-4 h-4" />
-                                        )}
-                                        <span className="text-sm">{expense.medioPago}</span>
-                                      </div>
-                                    </TableCell>
-                                    <TableCell className="text-sm text-muted-foreground hidden sm:table-cell">
-                                      {new Date(expense.fechaCreacion).toLocaleDateString("es-ES")}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                      <div>
-                                        <p className="font-semibold">-${expense.importe.toLocaleString()}</p>
-                                        {expense.porcentajeSueldo && (
-                                          <p className="text-xs text-muted-foreground">
-                                            {expense.porcentajeSueldo.toFixed(1)}% sueldo
+                                      </TableCell>
+                                      <TableCell className="hidden md:table-cell">
+                                        <Badge variant="secondary">
+                                          {expense.categoria}
+                                        </Badge>
+                                      </TableCell>
+                                      <TableCell className="hidden lg:table-cell">
+                                        <Badge variant="outline">
+                                          {expense.tipoGasto}
+                                        </Badge>
+                                      </TableCell>
+                                      <TableCell className="hidden lg:table-cell">
+                                        <div className="flex items-center gap-2">
+                                          {expense.medioPago === "Tarjeta" && (
+                                            <CreditCard className="w-4 h-4" />
+                                          )}
+                                          {expense.medioPago === "Cash" && (
+                                            <Banknote className="w-4 h-4" />
+                                          )}
+                                          {expense.medioPago ===
+                                            "Transferencia" && (
+                                            <ArrowRightLeft className="w-4 h-4" />
+                                          )}
+                                          <span className="text-sm">
+                                            {expense.medioPago}
+                                          </span>
+                                        </div>
+                                      </TableCell>
+                                      <TableCell className="text-sm text-muted-foreground hidden sm:table-cell">
+                                        {new Date(
+                                          expense.fechaCreacion
+                                        ).toLocaleDateString("es-ES")}
+                                      </TableCell>
+                                      <TableCell className="text-right">
+                                        <div>
+                                          <p className="font-semibold">
+                                            -${expense.importe.toLocaleString()}
                                           </p>
-                                        )}
-                                      </div>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                      <div className="flex gap-1 justify-end">
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => handleEditExpense(expense)}
-                                          className="h-8 w-8 p-0 smooth-transition enhanced-hover"
-                                        >
-                                          <Edit className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => handleDeleteExpense(expense.id)}
-                                          className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                                        >
-                                          <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                      </div>
-                                    </TableCell>
-                                  </TableRow>
-                                )
-                              })}
+                                          {expense.porcentajeSueldo && (
+                                            <p className="text-xs text-muted-foreground">
+                                              {expense.porcentajeSueldo.toFixed(
+                                                1
+                                              )}
+                                              % sueldo
+                                            </p>
+                                          )}
+                                        </div>
+                                      </TableCell>
+                                      <TableCell className="text-right">
+                                        <div className="flex gap-1 justify-end">
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() =>
+                                              handleEditExpense(expense)
+                                            }
+                                            className="h-8 w-8 p-0 smooth-transition enhanced-hover"
+                                          >
+                                            <Edit className="h-4 w-4" />
+                                          </Button>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() =>
+                                              handleDeleteExpense(expense.id)
+                                            }
+                                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                          >
+                                            <Trash2 className="h-4 w-4" />
+                                          </Button>
+                                        </div>
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                })}
                             </TableBody>
                           </Table>
                         </div>
@@ -1314,11 +2057,18 @@ export default function CifraApp() {
               >
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <motion.div variants={itemVariants}>
-                    <h2 className="text-lg font-semibold">Historial por Meses</h2>
-                    <p className="text-sm text-muted-foreground">Revisa tus gastos mes a mes</p>
+                    <h2 className="text-lg font-semibold">
+                      Historial por Meses
+                    </h2>
+                    <p className="text-sm text-muted-foreground">
+                      Revisa tus gastos mes a mes
+                    </p>
                   </motion.div>
                   <motion.div variants={itemVariants}>
-                    <Dialog open={isNewMonthModalOpen} onOpenChange={setIsNewMonthModalOpen}>
+                    <Dialog
+                      open={isNewMonthModalOpen}
+                      onOpenChange={setIsNewMonthModalOpen}
+                    >
                       <DialogTrigger asChild>
                         <Button>
                           <CalendarPlus className="w-4 h-4 mr-2" />
@@ -1329,7 +2079,8 @@ export default function CifraApp() {
                         <DialogHeader>
                           <DialogTitle>Crear Nuevo Mes</DialogTitle>
                           <DialogDescription>
-                            Selecciona el mes que quieres crear para registrar gastos
+                            Selecciona el mes que quieres crear para registrar
+                            gastos
                           </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
@@ -1340,10 +2091,15 @@ export default function CifraApp() {
                               type="month"
                               value={newMonthData}
                               onChange={(e) => setNewMonthData(e.target.value)}
-                              onKeyPress={(e) => handleKeyPress(e, handleCreateNewMonth)}
+                              onKeyPress={(e) =>
+                                handleKeyPress(e, handleCreateNewMonth)
+                              }
                             />
                           </div>
-                          <Button onClick={handleCreateNewMonth} className="w-full">
+                          <Button
+                            onClick={handleCreateNewMonth}
+                            className="w-full"
+                          >
                             Crear Mes
                           </Button>
                         </div>
@@ -1354,10 +2110,17 @@ export default function CifraApp() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {availableMonths.map((month, index) => {
-                    const monthExpenses = localStorage.getItem(`cifra-expenses-${month}`)
-                    const monthData = monthExpenses ? JSON.parse(monthExpenses) : []
-                    const total = monthData.reduce((sum: number, exp: Expense) => sum + exp.importe, 0)
-                    const count = monthData.length
+                    const monthExpenses = localStorage.getItem(
+                      `cifra-expenses-${month}`
+                    );
+                    const monthData = monthExpenses
+                      ? JSON.parse(monthExpenses)
+                      : [];
+                    const total = monthData.reduce(
+                      (sum: number, exp: Expense) => sum + exp.importe,
+                      0
+                    );
+                    const count = monthData.length;
 
                     return (
                       <motion.div
@@ -1368,41 +2131,56 @@ export default function CifraApp() {
                         whileTap={{ scale: 0.98 }}
                       >
                         <Card
-                          className={`border shadow-sm enhanced-card smooth-transition hover:shadow-md transition-shadow cursor-pointer ${month === currentMonth ? "ring-2 ring-primary" : ""}`}
+                          className={`border shadow-sm enhanced-card smooth-transition hover:shadow-md transition-shadow cursor-pointer ${
+                            month === currentMonth ? "ring-2 ring-primary" : ""
+                          }`}
                           onClick={() => {
-                            setCurrentMonth(month)
-                            loadExpenses(month)
-                            setCurrentSection("overview")
+                            setCurrentMonth(month);
+                            loadExpenses(month);
+                            setCurrentSection("overview");
                           }}
                         >
                           <CardContent className="p-4 lg:p-6">
                             <div className="flex items-center justify-between mb-3">
                               <div className="flex items-center gap-2">
                                 <Calendar className="w-5 h-5 text-primary" />
-                                <h3 className="font-semibold">{formatDate(month)}</h3>
+                                <h3 className="font-semibold">
+                                  {formatDate(month)}
+                                </h3>
                               </div>
                               {month === currentMonth && <Badge>Actual</Badge>}
                             </div>
                             <div className="space-y-2">
                               <div className="flex justify-between">
-                                <span className="text-sm text-muted-foreground">Total gastado:</span>
-                                <span className="font-semibold">${total.toLocaleString()}</span>
+                                <span className="text-sm text-muted-foreground">
+                                  Total gastado:
+                                </span>
+                                <span className="font-semibold">
+                                  ${total.toLocaleString()}
+                                </span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-sm text-muted-foreground">Gastos registrados:</span>
+                                <span className="text-sm text-muted-foreground">
+                                  Gastos registrados:
+                                </span>
                                 <span className="text-sm">{count}</span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-sm text-muted-foreground">% del sueldo:</span>
+                                <span className="text-sm text-muted-foreground">
+                                  % del sueldo:
+                                </span>
                                 <span className="text-sm">
-                                  {user?.sueldo ? ((total / user.sueldo) * 100).toFixed(1) : 0}%
+                                  {user?.sueldo
+                                    ? ((total / user.sueldo) * 100).toFixed(1)
+                                    : 0}
+                                  %
                                 </span>
                               </div>
                             </div>
                           </CardContent>
                         </Card>
                       </motion.div>
-                    )
+                    );
                   })}
                 </div>
               </motion.div>
@@ -1418,16 +2196,27 @@ export default function CifraApp() {
               >
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <motion.div variants={itemVariants}>
-                    <h2 className="text-lg font-semibold">Gestión de Categorías</h2>
-                    <p className="text-sm text-muted-foreground">Administra las categorías de gastos disponibles</p>
+                    <h2 className="text-lg font-semibold">
+                      Gestión de Categorías
+                    </h2>
+                    <p className="text-sm text-muted-foreground">
+                      Administra las categorías de gastos disponibles
+                    </p>
                   </motion.div>
                   <motion.div variants={itemVariants}>
-                    <Dialog open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
+                    <Dialog
+                      open={isCategoryModalOpen}
+                      onOpenChange={setIsCategoryModalOpen}
+                    >
                       <DialogTrigger asChild>
                         <Button
                           onClick={() => {
-                            setEditingCategory(null)
-                            setCategoryFormData({ name: "", icon: "Wallet", color: "#64748b" })
+                            setEditingCategory(null);
+                            setCategoryFormData({
+                              name: "",
+                              icon: "Wallet",
+                              color: "#64748b",
+                            });
                           }}
                         >
                           <Plus className="w-4 h-4 mr-2" />
@@ -1436,7 +2225,11 @@ export default function CifraApp() {
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-md">
                         <DialogHeader>
-                          <DialogTitle>{editingCategory ? "Editar Categoría" : "Nueva Categoría"}</DialogTitle>
+                          <DialogTitle>
+                            {editingCategory
+                              ? "Editar Categoría"
+                              : "Nueva Categoría"}
+                          </DialogTitle>
                           <DialogDescription>
                             {editingCategory
                               ? "Modifica los datos de la categoría"
@@ -1450,14 +2243,24 @@ export default function CifraApp() {
                               id="category-name"
                               placeholder="Ej: Entretenimiento"
                               value={categoryFormData.name}
-                              onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
+                              onChange={(e) =>
+                                setCategoryFormData({
+                                  ...categoryFormData,
+                                  name: e.target.value,
+                                })
+                              }
                             />
                           </div>
                           <div>
                             <Label htmlFor="category-icon">Icono</Label>
                             <Select
                               value={categoryFormData.icon}
-                              onValueChange={(value) => setCategoryFormData({ ...categoryFormData, icon: value })}
+                              onValueChange={(value) =>
+                                setCategoryFormData({
+                                  ...categoryFormData,
+                                  icon: value,
+                                })
+                              }
                             >
                               <SelectTrigger>
                                 <SelectValue />
@@ -1472,7 +2275,11 @@ export default function CifraApp() {
                             </Select>
                           </div>
                           <Button
-                            onClick={editingCategory ? handleUpdateCategory : handleAddCategory}
+                            onClick={
+                              editingCategory
+                                ? handleUpdateCategory
+                                : handleAddCategory
+                            }
                             className="w-full"
                           >
                             {editingCategory ? "Actualizar" : "Crear"} Categoría
@@ -1485,8 +2292,13 @@ export default function CifraApp() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {categories.map((category, index) => {
-                    const IconComponent = CATEGORY_ICONS[category.icon as keyof typeof CATEGORY_ICONS] || Wallet
-                    const expenseCount = expenses.filter((e) => e.categoria === category.name).length
+                    const IconComponent =
+                      CATEGORY_ICONS[
+                        category.icon as keyof typeof CATEGORY_ICONS
+                      ] || Wallet;
+                    const expenseCount = expenses.filter(
+                      (e) => e.categoria === category.name
+                    ).length;
                     return (
                       <motion.div
                         key={category.id}
@@ -1502,8 +2314,12 @@ export default function CifraApp() {
                                   <IconComponent className="w-5 h-5" />
                                 </div>
                                 <div>
-                                  <h3 className="font-medium">{category.name}</h3>
-                                  <p className="text-sm text-muted-foreground">{expenseCount} gastos</p>
+                                  <h3 className="font-medium">
+                                    {category.name}
+                                  </h3>
+                                  <p className="text-sm text-muted-foreground">
+                                    {expenseCount} gastos
+                                  </p>
                                 </div>
                               </div>
                               <div className="flex gap-1">
@@ -1518,7 +2334,9 @@ export default function CifraApp() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => handleDeleteCategory(category.id)}
+                                  onClick={() =>
+                                    handleDeleteCategory(category.id)
+                                  }
                                   className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                                   disabled={expenseCount > 0}
                                 >
@@ -1529,7 +2347,7 @@ export default function CifraApp() {
                           </CardContent>
                         </Card>
                       </motion.div>
-                    )
+                    );
                   })}
                 </div>
               </motion.div>
@@ -1546,8 +2364,12 @@ export default function CifraApp() {
                 <motion.div variants={cardVariants}>
                   <Card className="border shadow-sm enhanced-card smooth-transition">
                     <CardHeader>
-                      <CardTitle className="text-lg font-semibold">Configuración de Usuario</CardTitle>
-                      <CardDescription>Actualiza tu información personal y financiera</CardDescription>
+                      <CardTitle className="text-lg font-semibold">
+                        Configuración de Usuario
+                      </CardTitle>
+                      <CardDescription>
+                        Actualiza tu información personal y financiera
+                      </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div>
@@ -1557,9 +2379,15 @@ export default function CifraApp() {
                           value={user?.nombre || ""}
                           onChange={(e) => {
                             if (user) {
-                              const updatedUser = { ...user, nombre: e.target.value }
-                              setUser(updatedUser)
-                              localStorage.setItem("cifra-user", JSON.stringify(updatedUser))
+                              const updatedUser = {
+                                ...user,
+                                nombre: e.target.value,
+                              };
+                              setUser(updatedUser);
+                              localStorage.setItem(
+                                "cifra-user",
+                                JSON.stringify(updatedUser)
+                              );
                             }
                           }}
                         />
@@ -1572,9 +2400,15 @@ export default function CifraApp() {
                           value={user?.sueldo || ""}
                           onChange={(e) => {
                             if (user) {
-                              const updatedUser = { ...user, sueldo: Number.parseFloat(e.target.value) || 0 }
-                              setUser(updatedUser)
-                              localStorage.setItem("cifra-user", JSON.stringify(updatedUser))
+                              const updatedUser = {
+                                ...user,
+                                sueldo: Number.parseFloat(e.target.value) || 0,
+                              };
+                              setUser(updatedUser);
+                              localStorage.setItem(
+                                "cifra-user",
+                                JSON.stringify(updatedUser)
+                              );
                             }
                           }}
                         />
@@ -1585,9 +2419,15 @@ export default function CifraApp() {
                           value={user?.tipoSueldo || "Fijo"}
                           onValueChange={(value: "Fijo" | "Variable") => {
                             if (user) {
-                              const updatedUser = { ...user, tipoSueldo: value }
-                              setUser(updatedUser)
-                              localStorage.setItem("cifra-user", JSON.stringify(updatedUser))
+                              const updatedUser = {
+                                ...user,
+                                tipoSueldo: value,
+                              };
+                              setUser(updatedUser);
+                              localStorage.setItem(
+                                "cifra-user",
+                                JSON.stringify(updatedUser)
+                              );
                             }
                           }}
                         >
@@ -1596,7 +2436,9 @@ export default function CifraApp() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="Fijo">Sueldo Fijo</SelectItem>
-                            <SelectItem value="Variable">Sueldo Variable</SelectItem>
+                            <SelectItem value="Variable">
+                              Sueldo Variable
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -1607,19 +2449,28 @@ export default function CifraApp() {
                 <motion.div variants={cardVariants}>
                   <Card className="border shadow-sm enhanced-card smooth-transition">
                     <CardHeader>
-                      <CardTitle className="text-lg font-semibold">Datos y Respaldo</CardTitle>
+                      <CardTitle className="text-lg font-semibold">
+                        Datos y Respaldo
+                      </CardTitle>
                       <CardDescription>
-                        Exporta o importa todos tus datos para mantener un respaldo seguro
+                        Exporta o importa todos tus datos para mantener un
+                        respaldo seguro
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="flex gap-4">
-                        <Button onClick={exportToCSV} className="flex-1" variant="outline">
+                        <Button
+                          onClick={exportToCSV}
+                          className="flex-1"
+                          variant="outline"
+                        >
                           <Download className="w-4 h-4 mr-2" />
                           Exportar Datos
                         </Button>
                         <Button
-                          onClick={() => document.getElementById("import-file")?.click()}
+                          onClick={() =>
+                            document.getElementById("import-file")?.click()
+                          }
                           className="flex-1"
                           variant="outline"
                         >
@@ -1628,7 +2479,8 @@ export default function CifraApp() {
                         </Button>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        El archivo incluye todos tus gastos, configuraciones y categorías personalizadas.
+                        El archivo incluye todos tus gastos, configuraciones y
+                        categorías personalizadas.
                       </p>
                     </CardContent>
                   </Card>
@@ -1653,7 +2505,12 @@ export default function CifraApp() {
                 id="edit-expense-name"
                 placeholder="Ej: Supermercado"
                 value={editExpenseData.nombre}
-                onChange={(e) => setEditExpenseData({ ...editExpenseData, nombre: e.target.value })}
+                onChange={(e) =>
+                  setEditExpenseData({
+                    ...editExpenseData,
+                    nombre: e.target.value,
+                  })
+                }
                 onKeyPress={(e) => handleKeyPress(e, handleUpdateExpense)}
               />
             </div>
@@ -1661,7 +2518,9 @@ export default function CifraApp() {
               <Label htmlFor="edit-category">Categoría</Label>
               <Select
                 value={editExpenseData.categoria}
-                onValueChange={(value) => setEditExpenseData({ ...editExpenseData, categoria: value })}
+                onValueChange={(value) =>
+                  setEditExpenseData({ ...editExpenseData, categoria: value })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona una categoría" />
@@ -1682,7 +2541,12 @@ export default function CifraApp() {
                 type="number"
                 placeholder="0.00"
                 value={editExpenseData.importe}
-                onChange={(e) => setEditExpenseData({ ...editExpenseData, importe: e.target.value })}
+                onChange={(e) =>
+                  setEditExpenseData({
+                    ...editExpenseData,
+                    importe: e.target.value,
+                  })
+                }
                 onKeyPress={(e) => handleKeyPress(e, handleUpdateExpense)}
               />
             </div>
@@ -1690,7 +2554,9 @@ export default function CifraApp() {
               <Label htmlFor="edit-expense-type">Tipo de Gasto</Label>
               <Select
                 value={editExpenseData.tipoGasto}
-                onValueChange={(value) => setEditExpenseData({ ...editExpenseData, tipoGasto: value })}
+                onValueChange={(value) =>
+                  setEditExpenseData({ ...editExpenseData, tipoGasto: value })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona el tipo" />
@@ -1711,7 +2577,12 @@ export default function CifraApp() {
                   type="number"
                   placeholder="12"
                   value={editExpenseData.cuotas}
-                  onChange={(e) => setEditExpenseData({ ...editExpenseData, cuotas: e.target.value })}
+                  onChange={(e) =>
+                    setEditExpenseData({
+                      ...editExpenseData,
+                      cuotas: e.target.value,
+                    })
+                  }
                   onKeyPress={(e) => handleKeyPress(e, handleUpdateExpense)}
                 />
               </div>
@@ -1720,7 +2591,9 @@ export default function CifraApp() {
               <Label htmlFor="edit-payment-method">Medio de Pago</Label>
               <Select
                 value={editExpenseData.medioPago}
-                onValueChange={(value) => setEditExpenseData({ ...editExpenseData, medioPago: value })}
+                onValueChange={(value) =>
+                  setEditExpenseData({ ...editExpenseData, medioPago: value })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona el medio" />
@@ -1733,7 +2606,11 @@ export default function CifraApp() {
               </Select>
             </div>
             <div className="flex gap-3">
-              <Button variant="outline" onClick={() => setIsEditModalOpen(false)} className="flex-1">
+              <Button
+                variant="outline"
+                onClick={() => setIsEditModalOpen(false)}
+                className="flex-1"
+              >
                 Cancelar
               </Button>
               <Button onClick={handleUpdateExpense} className="flex-1">
@@ -1744,5 +2621,5 @@ export default function CifraApp() {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }

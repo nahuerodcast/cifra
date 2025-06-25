@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import LandingPage from "@/components/landing/landing-page";
@@ -34,6 +34,29 @@ export default function CifraApp() {
     }
   }, [user, userProfile, loading, mounted]);
 
+  // Memoizar callbacks para evitar re-renders innecesarios
+  const handleAddExpense = useCallback(() => {
+    setShowAddExpense(true);
+  }, []);
+
+  const handleCloseAddExpenseModal = useCallback((open: boolean) => {
+    setShowAddExpense(open);
+  }, []);
+
+  const handleStartApp = useCallback(() => {
+    setCurrentScreen("setup");
+    setShowSetup(true);
+  }, []);
+
+  const handleSetupComplete = useCallback(() => {
+    setShowSetup(false);
+    setCurrentScreen("dashboard");
+  }, []);
+
+  const handleCloseSetupModal = useCallback((open: boolean) => {
+    setShowSetup(open);
+  }, []);
+
   if (!mounted) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -56,16 +79,6 @@ export default function CifraApp() {
     );
   }
 
-  const handleStartApp = () => {
-    setCurrentScreen("setup");
-    setShowSetup(true);
-  };
-
-  const handleSetupComplete = () => {
-    setShowSetup(false);
-    setCurrentScreen("dashboard");
-  };
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -79,24 +92,20 @@ export default function CifraApp() {
 
       {currentScreen === "dashboard" && (
         <>
-          <Dashboard onAddExpense={() => setShowAddExpense(true)} />
+          <Dashboard onAddExpense={handleAddExpense} />
 
-          {showAddExpense && (
-            <AddExpenseModal
-              open={showAddExpense}
-              onOpenChange={setShowAddExpense}
-            />
-          )}
+          <AddExpenseModal
+            open={showAddExpense}
+            onOpenChange={handleCloseAddExpenseModal}
+          />
         </>
       )}
 
-      {showSetup && (
-        <SetupModal
-          open={showSetup}
-          onOpenChange={setShowSetup}
-          onComplete={handleSetupComplete}
-        />
-      )}
+      <SetupModal
+        open={showSetup}
+        onOpenChange={handleCloseSetupModal}
+        onComplete={handleSetupComplete}
+      />
     </motion.div>
   );
 }

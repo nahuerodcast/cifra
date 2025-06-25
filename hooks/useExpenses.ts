@@ -118,9 +118,15 @@ export function useExpenses(userId: string | undefined) {
 
     try {
       const newExpense: ExpenseInsert = {
-        ...convertToSupabase(expense),
         user_id: userId,
         month_key: currentMonth,
+        nombre: expense.nombre,
+        categoria: expense.categoria,
+        importe: expense.importe,
+        porcentaje_sueldo: expense.porcentajeSueldo,
+        tipo_gasto: expense.tipoGasto,
+        medio_pago: expense.medioPago,
+        cuotas: expense.cuotas,
       };
 
       const { data, error } = await supabase
@@ -224,6 +230,73 @@ export function useExpenses(userId: string | undefined) {
     setExpenses([]);
   };
 
+  const deleteMonth = async (monthKey: string) => {
+    if (!userId) return false;
+
+    try {
+      const { error } = await supabase
+        .from("expenses")
+        .delete()
+        .eq("user_id", userId)
+        .eq("month_key", monthKey);
+
+      if (error) {
+        console.error("Error deleting month:", error);
+        return false;
+      }
+
+      // Actualizar meses disponibles
+      setAvailableMonths((prev) => prev.filter((month) => month !== monthKey));
+
+      // Si es el mes actual, cambiar al más reciente disponible
+      if (monthKey === currentMonth) {
+        const remainingMonths = availableMonths.filter(
+          (month) => month !== monthKey
+        );
+        if (remainingMonths.length > 0) {
+          const newCurrentMonth = remainingMonths[0];
+          setCurrentMonth(newCurrentMonth);
+          loadExpenses(newCurrentMonth);
+        } else {
+          // Si no hay más meses, crear el mes actual
+          const currentMonthKey = new Date().toISOString().slice(0, 7);
+          setCurrentMonth(currentMonthKey);
+          setExpenses([]);
+        }
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error in deleteMonth:", error);
+      return false;
+    }
+  };
+
+  const getMonthStats = async (monthKey: string) => {
+    if (!userId) return null;
+
+    try {
+      const { data, error } = await supabase
+        .from("expenses")
+        .select("importe")
+        .eq("user_id", userId)
+        .eq("month_key", monthKey);
+
+      if (error) {
+        console.error("Error getting month stats:", error);
+        return null;
+      }
+
+      const total = data.reduce((sum, expense) => sum + expense.importe, 0);
+      const count = data.length;
+
+      return { total, count };
+    } catch (error) {
+      console.error("Error in getMonthStats:", error);
+      return null;
+    }
+  };
+
   return {
     expenses,
     availableMonths,
@@ -234,6 +307,8 @@ export function useExpenses(userId: string | undefined) {
     deleteExpense,
     changeMonth,
     createNewMonth,
+    deleteMonth,
+    getMonthStats,
     loadExpenses,
   };
 }

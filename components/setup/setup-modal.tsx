@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { CheckCircle, User, DollarSign, Briefcase } from "lucide-react";
+import { toast } from "sonner";
 
 interface SetupModalProps {
   open: boolean;
@@ -82,7 +83,7 @@ export default function SetupModal({
         onOpenChange(false);
       }
     } catch (error) {
-      console.error("Error completing setup:", error);
+      toast.error("Error al completar la configuración");
     } finally {
       setLoading(false);
     }

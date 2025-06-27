@@ -628,9 +628,27 @@ export default function Dashboard({}: DashboardProps) {
                   {currentSection === "categories" && "Categorías"}
                   {currentSection === "settings" && "Configuración"}
                 </h1>
-                <p className="text-sm text-muted-foreground">
-                  {formatDate(currentMonth)}
-                </p>
+                {currentSection === "overview" && (
+                  <div className="flex items-center gap-2">
+                    <Select value={currentMonth} onValueChange={changeMonth}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue>{formatDate(currentMonth)}</SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableMonths.map((month) => (
+                          <SelectItem key={month} value={month}>
+                            {formatDate(month)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                {currentSection !== "overview" && (
+                  <p className="text-sm text-muted-foreground">
+                    {formatDate(currentMonth)}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -1014,7 +1032,11 @@ export default function Dashboard({}: DashboardProps) {
                   {availableMonths.map((month) => {
                     const stats = monthStats[month];
                     return (
-                      <motion.div key={month} variants={cardVariants}>
+                      <motion.div
+                        key={month}
+                        variants={cardVariants}
+                        className="relative"
+                      >
                         <Card
                           className={`transition-colors ${
                             month === currentMonth
@@ -1026,7 +1048,10 @@ export default function Dashboard({}: DashboardProps) {
                             <CardTitle className="flex items-center justify-between">
                               <span
                                 className="text-base cursor-pointer hover:text-orange-500"
-                                onClick={() => changeMonth(month)}
+                                onClick={() => {
+                                  changeMonth(month);
+                                  setCurrentSection("overview");
+                                }}
                               >
                                 {formatDate(month)}
                               </span>

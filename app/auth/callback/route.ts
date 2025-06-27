@@ -38,8 +38,11 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error) {
-      console.error("Error exchanging code for session:", error);
-      return NextResponse.redirect(`${origin}/?error=auth_error`);
+      return NextResponse.redirect(
+        `${requestUrl.origin}/auth-error?error=${encodeURIComponent(
+          error.message
+        )}`
+      );
     }
 
     // After successful authentication, redirect to home page

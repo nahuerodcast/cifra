@@ -68,9 +68,7 @@ export function useCategories(userId: string | undefined) {
         .order("created_at", { ascending: true });
 
       if (error) {
-        console.error("Error loading categories:", error);
-        // Si hay error o no hay categorías, crear las por defecto
-        await createDefaultCategories();
+        setCategories([]);
         return;
       }
 
@@ -82,8 +80,7 @@ export function useCategories(userId: string | undefined) {
         setCategories(convertedCategories);
       }
     } catch (error) {
-      console.error("Error in loadCategories:", error);
-      await createDefaultCategories();
+      setCategories([]);
     } finally {
       setLoading(false);
     }
@@ -105,14 +102,14 @@ export function useCategories(userId: string | undefined) {
         .select();
 
       if (error) {
-        console.error("Error creating default categories:", error);
+        setCategories([]);
         return;
       }
 
       const convertedCategories = data.map(convertFromSupabase);
       setCategories(convertedCategories);
     } catch (error) {
-      console.error("Error in createDefaultCategories:", error);
+      setCategories([]);
     }
   };
 
@@ -132,7 +129,6 @@ export function useCategories(userId: string | undefined) {
         .single();
 
       if (error) {
-        console.error("Error adding category:", error);
         toast.error("Error al crear la categoría");
         return false;
       }
@@ -142,7 +138,6 @@ export function useCategories(userId: string | undefined) {
       toast.success("Categoría creada exitosamente");
       return true;
     } catch (error) {
-      console.error("Error in addCategory:", error);
       toast.error("Error al crear la categoría");
       return false;
     }
@@ -169,7 +164,6 @@ export function useCategories(userId: string | undefined) {
         .single();
 
       if (error) {
-        console.error("Error updating category:", error);
         toast.error("Error al actualizar la categoría");
         return false;
       }
@@ -184,7 +178,6 @@ export function useCategories(userId: string | undefined) {
       toast.success("Categoría actualizada exitosamente");
       return true;
     } catch (error) {
-      console.error("Error in updateCategory:", error);
       toast.error("Error al actualizar la categoría");
       return false;
     }
@@ -201,7 +194,6 @@ export function useCategories(userId: string | undefined) {
         .eq("user_id", userId);
 
       if (error) {
-        console.error("Error deleting category:", error);
         toast.error("Error al eliminar la categoría");
         return false;
       }
@@ -212,7 +204,6 @@ export function useCategories(userId: string | undefined) {
       toast.success("Categoría eliminada exitosamente");
       return true;
     } catch (error) {
-      console.error("Error in deleteCategory:", error);
       toast.error("Error al eliminar la categoría");
       return false;
     }

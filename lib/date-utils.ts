@@ -22,7 +22,6 @@ export const formatMonthKey = (monthKey: string): string => {
     }
     return format(date, "MMMM yyyy", { locale: es });
   } catch (error) {
-    console.error("Error formatting month key:", error);
     return monthKey;
   }
 };
@@ -36,7 +35,6 @@ export const formatMonthKeyShort = (monthKey: string): string => {
     }
     return format(date, "MMM yy", { locale: es });
   } catch (error) {
-    console.error("Error formatting month key short:", error);
     return monthKey;
   }
 };
@@ -63,7 +61,6 @@ export const getNextMonthKey = (monthKey: string): string => {
     const nextMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
     return dateToMonthKey(nextMonth);
   } catch (error) {
-    console.error("Error getting next month:", error);
     return monthKey;
   }
 };
@@ -75,7 +72,6 @@ export const getPreviousMonthKey = (monthKey: string): string => {
     const previousMonth = new Date(date.getFullYear(), date.getMonth() - 1, 1);
     return dateToMonthKey(previousMonth);
   } catch (error) {
-    console.error("Error getting previous month:", error);
     return monthKey;
   }
 };

@@ -97,8 +97,7 @@ export default function AddExpenseModal({
         toast.error("Error al agregar el gasto. Inténtalo de nuevo.");
       }
     } catch (error) {
-      console.error("Error adding expense:", error);
-      toast.error("Error al agregar el gasto. Inténtalo de nuevo.");
+      toast.error("Error al agregar el gasto");
     } finally {
       setLoading(false);
     }

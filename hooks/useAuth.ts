@@ -47,7 +47,6 @@ export function useAuth() {
         setLoading(false);
       } catch (error) {
         if (!mounted) return;
-        console.error("Authentication error:", error);
         setLoading(false);
       }
     };
@@ -108,7 +107,6 @@ export function useAuth() {
 
       return newProfile;
     } catch (error) {
-      console.error("Profile error:", error);
       return null;
     }
   };
@@ -128,14 +126,12 @@ export function useAuth() {
         .single();
 
       if (error) {
-        console.error("Error updating profile:", error);
         return false;
       }
 
       setUserProfile(data);
       return true;
     } catch (error) {
-      console.error("Update profile error:", error);
       return false;
     }
   };
@@ -143,9 +139,7 @@ export function useAuth() {
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
-    } catch (error) {
-      console.error("Sign out error:", error);
-    }
+    } catch (error) {}
   };
 
   // Helper to get user's avatar URL

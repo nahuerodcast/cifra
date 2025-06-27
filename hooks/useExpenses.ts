@@ -74,7 +74,6 @@ export function useExpenses(userId: string | undefined) {
         .eq("user_id", userId);
 
       if (error) {
-        console.error("Error loading available months:", error);
         return;
       }
 
@@ -82,9 +81,7 @@ export function useExpenses(userId: string | undefined) {
         .sort()
         .reverse();
       setAvailableMonths(uniqueMonths);
-    } catch (error) {
-      console.error("Error in loadAvailableMonths:", error);
-    }
+    } catch (error) {}
   };
 
   const loadExpenses = async (monthKey: string) => {
@@ -100,7 +97,6 @@ export function useExpenses(userId: string | undefined) {
         .order("created_at", { ascending: false });
 
       if (error) {
-        console.error("Error loading expenses:", error);
         setExpenses([]);
         return;
       }
@@ -108,7 +104,6 @@ export function useExpenses(userId: string | undefined) {
       const convertedExpenses = data.map(convertFromSupabase);
       setExpenses(convertedExpenses);
     } catch (error) {
-      console.error("Error in loadExpenses:", error);
       setExpenses([]);
     } finally {
       setLoading(false);
@@ -138,7 +133,7 @@ export function useExpenses(userId: string | undefined) {
         .single();
 
       if (error) {
-        console.error("Error adding expense:", error);
+        setExpenses([]);
         toast.error("Error al agregar el gasto");
         return false;
       }
@@ -154,7 +149,6 @@ export function useExpenses(userId: string | undefined) {
       toast.success("Gasto agregado exitosamente");
       return true;
     } catch (error) {
-      console.error("Error in addExpense:", error);
       toast.error("Error al agregar el gasto");
       return false;
     }
@@ -181,7 +175,6 @@ export function useExpenses(userId: string | undefined) {
         .single();
 
       if (error) {
-        console.error("Error updating expense:", error);
         toast.error("Error al actualizar el gasto");
         return false;
       }
@@ -196,7 +189,6 @@ export function useExpenses(userId: string | undefined) {
       toast.success("Gasto actualizado exitosamente");
       return true;
     } catch (error) {
-      console.error("Error in updateExpense:", error);
       toast.error("Error al actualizar el gasto");
       return false;
     }
@@ -213,7 +205,6 @@ export function useExpenses(userId: string | undefined) {
         .eq("user_id", userId);
 
       if (error) {
-        console.error("Error deleting expense:", error);
         toast.error("Error al eliminar el gasto");
         return false;
       }
@@ -222,7 +213,6 @@ export function useExpenses(userId: string | undefined) {
       toast.success("Gasto eliminado exitosamente");
       return true;
     } catch (error) {
-      console.error("Error in deleteExpense:", error);
       toast.error("Error al eliminar el gasto");
       return false;
     }
@@ -253,7 +243,6 @@ export function useExpenses(userId: string | undefined) {
         .eq("month_key", monthKey);
 
       if (error) {
-        console.error("Error deleting month:", error);
         toast.error("Error al eliminar el mes");
         return false;
       }
@@ -281,7 +270,6 @@ export function useExpenses(userId: string | undefined) {
       toast.success("Mes eliminado exitosamente");
       return true;
     } catch (error) {
-      console.error("Error in deleteMonth:", error);
       toast.error("Error al eliminar el mes");
       return false;
     }
@@ -298,7 +286,6 @@ export function useExpenses(userId: string | undefined) {
         .eq("month_key", monthKey);
 
       if (error) {
-        console.error("Error getting month stats:", error);
         return null;
       }
 
@@ -307,7 +294,6 @@ export function useExpenses(userId: string | undefined) {
 
       return { total, count };
     } catch (error) {
-      console.error("Error in getMonthStats:", error);
       return null;
     }
   };

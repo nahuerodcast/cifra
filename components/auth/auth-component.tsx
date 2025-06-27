@@ -76,7 +76,9 @@ export default function AuthComponent({ onAuthSuccess }: AuthComponentProps) {
               },
             }}
             providers={["google"]}
-            redirectTo="/auth/callback"
+            redirectTo={`${
+              process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
+            }/auth/callback`}
             onlyThirdPartyProviders
             localization={{
               variables: {

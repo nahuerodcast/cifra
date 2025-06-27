@@ -6,7 +6,9 @@ import { cookies } from "next/headers";
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
-  const origin = requestUrl.origin;
+
+  // Get origin more robustly for production
+  const origin = process.env.NEXT_PUBLIC_SITE_URL || requestUrl.origin;
 
   if (code) {
     const cookieStore = await cookies();
@@ -39,8 +41,12 @@ export async function GET(request: NextRequest) {
       console.error("Error exchanging code for session:", error);
       return NextResponse.redirect(`${origin}/?error=auth_error`);
     }
+
+    // After successful authentication, redirect to home page
+    // where logic will handle showing setup or dashboard
+    return NextResponse.redirect(`${origin}/?auth=success`);
   }
 
-  // Redirigir al usuario a la página principal después de autenticarse
+  // If no code, redirect to home page
   return NextResponse.redirect(`${origin}/`);
 }

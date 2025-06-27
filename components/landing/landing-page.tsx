@@ -30,10 +30,13 @@ export default function LandingPage({ onStartApp }: LandingPageProps) {
   const [supabase] = useState(() => createSupabaseBrowserClient());
 
   const handleGoogleAuth = async () => {
+    // Use production base URL if configured, otherwise use current origin
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${baseUrl}/auth/callback`,
       },
     });
   };

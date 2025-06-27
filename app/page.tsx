@@ -19,6 +19,14 @@ export default function CifraApp() {
 
   useEffect(() => {
     setMounted(true);
+
+    // Clean URL parameters after authentication callback
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("auth") === "success") {
+      // Remove parameter from URL without reloading the page
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, "", newUrl);
+    }
   }, []);
 
   useEffect(() => {
@@ -34,7 +42,7 @@ export default function CifraApp() {
     }
   }, [user, userProfile, loading, mounted]);
 
-  // Memoizar callbacks para evitar re-renders innecesarios
+  // Memoize callbacks to avoid unnecessary re-renders
   const handleAddExpense = useCallback(() => {
     setShowAddExpense(true);
   }, []);

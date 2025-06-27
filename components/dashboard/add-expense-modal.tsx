@@ -19,21 +19,26 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
-import { useExpenses, type Expense } from "@/hooks/useExpenses";
-import { useCategories } from "@/hooks/useCategories";
+import { type Expense } from "@/hooks/useExpenses";
+import { type Category } from "@/hooks/useCategories";
+import { toast } from "sonner";
 
 interface AddExpenseModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onAddExpense: (
+    expense: Omit<Expense, "id" | "fechaCreacion">
+  ) => Promise<boolean>;
+  categories: Category[];
 }
 
 export default function AddExpenseModal({
   open,
   onOpenChange,
+  onAddExpense,
+  categories,
 }: AddExpenseModalProps) {
   const { user, userProfile } = useAuth();
-  const { addExpense } = useExpenses(user?.id);
-  const { categories } = useCategories(user?.id);
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -77,7 +82,7 @@ export default function AddExpenseModal({
             : undefined,
       };
 
-      const success = await addExpense(expense);
+      const success = await onAddExpense(expense);
       if (success) {
         setFormData({
           nombre: "",
@@ -89,11 +94,11 @@ export default function AddExpenseModal({
         });
         onOpenChange(false);
       } else {
-        alert("Error al agregar el gasto. Inténtalo de nuevo.");
+        toast.error("Error al agregar el gasto. Inténtalo de nuevo.");
       }
     } catch (error) {
       console.error("Error adding expense:", error);
-      alert("Error al agregar el gasto. Inténtalo de nuevo.");
+      toast.error("Error al agregar el gasto. Inténtalo de nuevo.");
     } finally {
       setLoading(false);
     }

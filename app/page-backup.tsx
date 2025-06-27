@@ -4,6 +4,11 @@ import type React from "react";
 import { useState, useEffect, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import CountUp from "react-countup";
+import {
+  formatMonthKey,
+  formatMonthKeyShort,
+  getCurrentMonthKey,
+} from "@/lib/date-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -138,21 +143,13 @@ const CATEGORY_ICONS = {
   Wallet,
 };
 
-// Función para formatear fechas correctamente
+// Use the new date utilities that handle timezone issues properly
 const formatDate = (dateString: string) => {
-  const date = new Date(dateString + "-01");
-  return date.toLocaleDateString("es-ES", {
-    month: "long",
-    year: "numeric",
-  });
+  return formatMonthKey(dateString);
 };
 
 const formatDateShort = (dateString: string) => {
-  const date = new Date(dateString + "-01");
-  return date.toLocaleDateString("es-ES", {
-    month: "short",
-    year: "2-digit",
-  });
+  return formatMonthKeyShort(dateString);
 };
 
 const getCurrentDateFormatted = () => {
@@ -279,7 +276,7 @@ export default function CifraApp() {
   useEffect(() => {
     const savedUser = localStorage.getItem("cifra-user");
     const savedCategories = localStorage.getItem("cifra-categories");
-    const currentMonthKey = new Date().toISOString().slice(0, 7);
+    const currentMonthKey = getCurrentMonthKey();
     setCurrentMonth(currentMonthKey);
     loadAvailableMonths();
 
@@ -308,7 +305,7 @@ export default function CifraApp() {
       .sort()
       .reverse();
 
-    const currentMonthKey = new Date().toISOString().slice(0, 7);
+    const currentMonthKey = getCurrentMonthKey();
     if (!months.includes(currentMonthKey)) {
       months.unshift(currentMonthKey);
     }

@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase";
 import type { Database } from "@/lib/supabase";
+import { getCurrentMonthKey } from "@/lib/date-utils";
+import { toast } from "sonner";
 
 type ExpenseRow = Database["public"]["Tables"]["expenses"]["Row"];
 type ExpenseInsert = Database["public"]["Tables"]["expenses"]["Insert"];
@@ -56,7 +58,7 @@ export function useExpenses(userId: string | undefined) {
   useEffect(() => {
     if (userId) {
       loadAvailableMonths();
-      const currentMonthKey = new Date().toISOString().slice(0, 7); // YYYY-MM
+      const currentMonthKey = getCurrentMonthKey();
       setCurrentMonth(currentMonthKey);
       loadExpenses(currentMonthKey);
     }
@@ -137,6 +139,7 @@ export function useExpenses(userId: string | undefined) {
 
       if (error) {
         console.error("Error adding expense:", error);
+        toast.error("Error al agregar el gasto");
         return false;
       }
 
@@ -148,9 +151,11 @@ export function useExpenses(userId: string | undefined) {
         setAvailableMonths((prev) => [currentMonth, ...prev].sort().reverse());
       }
 
+      toast.success("Gasto agregado exitosamente");
       return true;
     } catch (error) {
       console.error("Error in addExpense:", error);
+      toast.error("Error al agregar el gasto");
       return false;
     }
   };
@@ -177,6 +182,7 @@ export function useExpenses(userId: string | undefined) {
 
       if (error) {
         console.error("Error updating expense:", error);
+        toast.error("Error al actualizar el gasto");
         return false;
       }
 
@@ -187,9 +193,11 @@ export function useExpenses(userId: string | undefined) {
         )
       );
 
+      toast.success("Gasto actualizado exitosamente");
       return true;
     } catch (error) {
       console.error("Error in updateExpense:", error);
+      toast.error("Error al actualizar el gasto");
       return false;
     }
   };
@@ -206,13 +214,16 @@ export function useExpenses(userId: string | undefined) {
 
       if (error) {
         console.error("Error deleting expense:", error);
+        toast.error("Error al eliminar el gasto");
         return false;
       }
 
       setExpenses((prev) => prev.filter((expense) => expense.id !== expenseId));
+      toast.success("Gasto eliminado exitosamente");
       return true;
     } catch (error) {
       console.error("Error in deleteExpense:", error);
+      toast.error("Error al eliminar el gasto");
       return false;
     }
   };
@@ -228,6 +239,7 @@ export function useExpenses(userId: string | undefined) {
     }
     setCurrentMonth(monthKey);
     setExpenses([]);
+    toast.success("Mes creado exitosamente");
   };
 
   const deleteMonth = async (monthKey: string) => {
@@ -242,6 +254,7 @@ export function useExpenses(userId: string | undefined) {
 
       if (error) {
         console.error("Error deleting month:", error);
+        toast.error("Error al eliminar el mes");
         return false;
       }
 
@@ -259,15 +272,17 @@ export function useExpenses(userId: string | undefined) {
           loadExpenses(newCurrentMonth);
         } else {
           // Si no hay más meses, crear el mes actual
-          const currentMonthKey = new Date().toISOString().slice(0, 7);
+          const currentMonthKey = getCurrentMonthKey();
           setCurrentMonth(currentMonthKey);
           setExpenses([]);
         }
       }
 
+      toast.success("Mes eliminado exitosamente");
       return true;
     } catch (error) {
       console.error("Error in deleteMonth:", error);
+      toast.error("Error al eliminar el mes");
       return false;
     }
   };

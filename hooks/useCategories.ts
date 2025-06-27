@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase";
 import type { Database } from "@/lib/supabase";
+import { toast } from "sonner";
 
 type CategoryRow = Database["public"]["Tables"]["categories"]["Row"];
 type CategoryInsert = Database["public"]["Tables"]["categories"]["Insert"];
@@ -132,14 +133,17 @@ export function useCategories(userId: string | undefined) {
 
       if (error) {
         console.error("Error adding category:", error);
+        toast.error("Error al crear la categoría");
         return false;
       }
 
       const convertedCategory = convertFromSupabase(data);
       setCategories((prev) => [...prev, convertedCategory]);
+      toast.success("Categoría creada exitosamente");
       return true;
     } catch (error) {
       console.error("Error in addCategory:", error);
+      toast.error("Error al crear la categoría");
       return false;
     }
   };
@@ -166,6 +170,7 @@ export function useCategories(userId: string | undefined) {
 
       if (error) {
         console.error("Error updating category:", error);
+        toast.error("Error al actualizar la categoría");
         return false;
       }
 
@@ -176,9 +181,11 @@ export function useCategories(userId: string | undefined) {
         )
       );
 
+      toast.success("Categoría actualizada exitosamente");
       return true;
     } catch (error) {
       console.error("Error in updateCategory:", error);
+      toast.error("Error al actualizar la categoría");
       return false;
     }
   };
@@ -195,15 +202,18 @@ export function useCategories(userId: string | undefined) {
 
       if (error) {
         console.error("Error deleting category:", error);
+        toast.error("Error al eliminar la categoría");
         return false;
       }
 
       setCategories((prev) =>
         prev.filter((category) => category.id !== categoryId)
       );
+      toast.success("Categoría eliminada exitosamente");
       return true;
     } catch (error) {
       console.error("Error in deleteCategory:", error);
+      toast.error("Error al eliminar la categoría");
       return false;
     }
   };

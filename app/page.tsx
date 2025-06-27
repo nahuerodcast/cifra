@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import LandingPage from "@/components/landing/landing-page";
 import Dashboard from "@/components/dashboard/dashboard";
-import AddExpenseModal from "@/components/dashboard/add-expense-modal";
 import SetupModal from "@/components/setup/setup-modal";
 
 type Screen = "landing" | "setup" | "dashboard";
@@ -13,7 +12,6 @@ type Screen = "landing" | "setup" | "dashboard";
 export default function CifraApp() {
   const { user, userProfile, loading } = useAuth();
   const [currentScreen, setCurrentScreen] = useState<Screen>("landing");
-  const [showAddExpense, setShowAddExpense] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -43,14 +41,6 @@ export default function CifraApp() {
   }, [user, userProfile, loading, mounted]);
 
   // Memoize callbacks to avoid unnecessary re-renders
-  const handleAddExpense = useCallback(() => {
-    setShowAddExpense(true);
-  }, []);
-
-  const handleCloseAddExpenseModal = useCallback((open: boolean) => {
-    setShowAddExpense(open);
-  }, []);
-
   const handleStartApp = useCallback(() => {
     setCurrentScreen("setup");
     setShowSetup(true);
@@ -98,16 +88,7 @@ export default function CifraApp() {
         <LandingPage onStartApp={handleStartApp} />
       )}
 
-      {currentScreen === "dashboard" && (
-        <>
-          <Dashboard onAddExpense={handleAddExpense} />
-
-          <AddExpenseModal
-            open={showAddExpense}
-            onOpenChange={handleCloseAddExpenseModal}
-          />
-        </>
-      )}
+      {currentScreen === "dashboard" && <Dashboard />}
 
       <SetupModal
         open={showSetup}

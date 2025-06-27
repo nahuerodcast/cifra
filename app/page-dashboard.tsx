@@ -1,14 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import AuthComponent from "@/components/auth/auth-component";
 import Dashboard from "@/components/dashboard/dashboard";
-import AddExpenseModal from "@/components/dashboard/add-expense-modal";
 
 export default function CifraApp() {
   const { user, userProfile, loading } = useAuth();
-  const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false);
 
   // Pantalla de carga
   if (loading) {
@@ -33,13 +30,5 @@ export default function CifraApp() {
   }
 
   // Dashboard principal
-  return (
-    <>
-      <Dashboard onAddExpense={() => setIsAddExpenseModalOpen(true)} />
-      <AddExpenseModal
-        open={isAddExpenseModalOpen}
-        onOpenChange={setIsAddExpenseModalOpen}
-      />
-    </>
-  );
+  return <Dashboard />;
 }

@@ -51,15 +51,18 @@ import { useAuth } from "@/hooks/useAuth";
 import { useExpenses } from "@/hooks/useExpenses";
 import { useCategories } from "@/hooks/useCategories";
 import { createSupabaseBrowserClient } from "@/lib/supabase";
+import { formatMonthKey, formatMonthKeyShort } from "@/lib/date-utils";
 import { motion, AnimatePresence } from "framer-motion";
 import CountUp from "react-countup";
+import AddExpenseModal from "./add-expense-modal";
+import ConfirmationModal from "@/components/ui/confirmation-modal";
 // Charts are now implemented with CSS progress bars
 
 interface DashboardProps {
-  onAddExpense: () => void;
+  // Dashboard now handles the add expense modal internally
 }
 
-export default function Dashboard({ onAddExpense }: DashboardProps) {
+export default function Dashboard({}: DashboardProps) {
   const { user, userProfile, signOut, getAvatarUrl } = useAuth();
   const [supabase] = useState(() => createSupabaseBrowserClient());
   const {
@@ -71,6 +74,9 @@ export default function Dashboard({ onAddExpense }: DashboardProps) {
     createNewMonth,
     deleteMonth,
     getMonthStats,
+    addExpense,
+    updateExpense,
+    deleteExpense,
   } = useExpenses(user?.id);
   const { categories, addCategory, updateCategory, deleteCategory } =
     useCategories(user?.id);
@@ -81,6 +87,7 @@ export default function Dashboard({ onAddExpense }: DashboardProps) {
     "overview" | "months" | "categories" | "settings"
   >("overview");
   const [searchTerm, setSearchTerm] = useState("");
+  const [showAddExpenseModal, setShowAddExpenseModal] = useState(false);
 
   // Estados para gestión de categorías
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
@@ -90,6 +97,8 @@ export default function Dashboard({ onAddExpense }: DashboardProps) {
     icon: "Wallet",
     color: "#64748b",
   });
+  const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
+  const [deletingCategory, setDeletingCategory] = useState(false);
 
   // Estados para gestión de meses
   const [isNewMonthModalOpen, setIsNewMonthModalOpen] = useState(false);
@@ -101,6 +110,7 @@ export default function Dashboard({ onAddExpense }: DashboardProps) {
   const [isEditMonthModalOpen, setIsEditMonthModalOpen] = useState(false);
   const [editingMonth, setEditingMonth] = useState<string>("");
   const [editMonthData, setEditMonthData] = useState("");
+  const [deletingMonth, setDeletingMonth] = useState(false);
 
   if (!userProfile) return null;
 
@@ -172,20 +182,13 @@ export default function Dashboard({ onAddExpense }: DashboardProps) {
     }).format(amount);
   };
 
+  // Use the new date utilities that handle timezone issues properly
   const formatDate = (monthKey: string) => {
-    const date = new Date(monthKey + "-01");
-    return date.toLocaleDateString("es-ES", {
-      month: "long",
-      year: "numeric",
-    });
+    return formatMonthKey(monthKey);
   };
 
   const formatDateShort = (monthKey: string) => {
-    const date = new Date(monthKey + "-01");
-    return date.toLocaleDateString("es-ES", {
-      month: "short",
-      year: "2-digit",
-    });
+    return formatMonthKeyShort(monthKey);
   };
 
   // Funciones para categorías
@@ -228,9 +231,19 @@ export default function Dashboard({ onAddExpense }: DashboardProps) {
     }
   };
 
-  const handleDeleteCategory = async (categoryId: string) => {
-    if (confirm("¿Estás seguro de que quieres eliminar esta categoría?")) {
-      await deleteCategory(categoryId);
+  const handleDeleteCategory = (categoryId: string) => {
+    setCategoryToDelete(categoryId);
+  };
+
+  const confirmDeleteCategory = async () => {
+    if (!categoryToDelete) return;
+
+    setDeletingCategory(true);
+    try {
+      await deleteCategory(categoryToDelete);
+      setCategoryToDelete(null);
+    } finally {
+      setDeletingCategory(false);
     }
   };
 
@@ -244,11 +257,18 @@ export default function Dashboard({ onAddExpense }: DashboardProps) {
     }
   };
 
-  const handleDeleteMonth = async (monthKey: string) => {
-    const success = await deleteMonth(monthKey);
-    if (success) {
-      setMonthToDelete(null);
-      loadMonthStats();
+  const confirmDeleteMonth = async () => {
+    if (!monthToDelete) return;
+
+    setDeletingMonth(true);
+    try {
+      const success = await deleteMonth(monthToDelete);
+      if (success) {
+        setMonthToDelete(null);
+        loadMonthStats();
+      }
+    } finally {
+      setDeletingMonth(false);
     }
   };
 
@@ -617,7 +637,7 @@ export default function Dashboard({ onAddExpense }: DashboardProps) {
             <div className="flex items-center space-x-2">
               {currentSection === "overview" && (
                 <Button
-                  onClick={onAddExpense}
+                  onClick={() => setShowAddExpenseModal(true)}
                   size="sm"
                   className="bg-orange-500 hover:bg-orange-600"
                 >
@@ -866,7 +886,7 @@ export default function Dashboard({ onAddExpense }: DashboardProps) {
                           </p>
                           {!searchTerm && (
                             <Button
-                              onClick={onAddExpense}
+                              onClick={() => setShowAddExpenseModal(true)}
                               className="bg-orange-500 hover:bg-orange-600"
                             >
                               <Plus className="w-4 h-4 mr-2" />
@@ -1269,39 +1289,19 @@ export default function Dashboard({ onAddExpense }: DashboardProps) {
       </div>
 
       {/* Modal de confirmación para eliminar mes */}
-      <Dialog
+      <ConfirmationModal
         open={!!monthToDelete}
         onOpenChange={() => setMonthToDelete(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Eliminar Mes</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <p>
-              ¿Estás seguro de que quieres eliminar el mes{" "}
-              <strong>{monthToDelete && formatDate(monthToDelete)}</strong>?
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Esta acción eliminará todos los gastos de este mes y no se puede
-              deshacer.
-            </p>
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setMonthToDelete(null)}>
-                Cancelar
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() =>
-                  monthToDelete && handleDeleteMonth(monthToDelete)
-                }
-              >
-                Eliminar
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+        title="Eliminar Mes"
+        description={`¿Estás seguro de que quieres eliminar el mes ${
+          monthToDelete ? formatDate(monthToDelete) : ""
+        }? Esta acción eliminará todos los gastos de este mes y no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        variant="destructive"
+        onConfirm={confirmDeleteMonth}
+        loading={deletingMonth}
+      />
 
       {/* Modal para editar mes */}
       <Dialog
@@ -1343,6 +1343,27 @@ export default function Dashboard({ onAddExpense }: DashboardProps) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Modal para agregar gastos */}
+      <AddExpenseModal
+        open={showAddExpenseModal}
+        onOpenChange={setShowAddExpenseModal}
+        onAddExpense={addExpense}
+        categories={categories}
+      />
+
+      {/* Modal de confirmación para eliminar categoría */}
+      <ConfirmationModal
+        open={!!categoryToDelete}
+        onOpenChange={() => setCategoryToDelete(null)}
+        title="Eliminar Categoría"
+        description="¿Estás seguro de que quieres eliminar esta categoría? Esta acción no se puede deshacer."
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        variant="destructive"
+        onConfirm={confirmDeleteCategory}
+        loading={deletingCategory}
+      />
     </div>
   );
 }

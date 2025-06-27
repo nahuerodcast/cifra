@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,14 +29,21 @@ interface AddExpenseModalProps {
   onAddExpense: (
     expense: Omit<Expense, "id" | "fechaCreacion">
   ) => Promise<boolean>;
+  onUpdateExpense?: (
+    expenseId: string,
+    expense: Partial<Expense>
+  ) => Promise<boolean>;
   categories: Category[];
+  editingExpense?: Expense | null;
 }
 
 export default function AddExpenseModal({
   open,
   onOpenChange,
   onAddExpense,
+  onUpdateExpense,
   categories,
+  editingExpense,
 }: AddExpenseModalProps) {
   const { user, userProfile } = useAuth();
 
@@ -49,6 +56,28 @@ export default function AddExpenseModal({
     cuotas: "",
   });
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (editingExpense) {
+      setFormData({
+        nombre: editingExpense.nombre,
+        categoria: editingExpense.categoria,
+        importe: editingExpense.importe.toString(),
+        tipoGasto: editingExpense.tipoGasto,
+        medioPago: editingExpense.medioPago,
+        cuotas: editingExpense.cuotas?.toString() || "",
+      });
+    } else {
+      setFormData({
+        nombre: "",
+        categoria: "",
+        importe: "",
+        tipoGasto: "",
+        medioPago: "",
+        cuotas: "",
+      });
+    }
+  }, [editingExpense]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,7 +98,7 @@ export default function AddExpenseModal({
         ? (importe / userProfile.sueldo) * 100
         : undefined;
 
-      const expense: Omit<Expense, "id" | "fechaCreacion"> = {
+      const expenseData = {
         nombre: formData.nombre,
         categoria: formData.categoria,
         importe: importe,
@@ -82,7 +111,13 @@ export default function AddExpenseModal({
             : undefined,
       };
 
-      const success = await onAddExpense(expense);
+      let success;
+      if (editingExpense) {
+        success = await onUpdateExpense?.(editingExpense.id, expenseData);
+      } else {
+        success = await onAddExpense(expenseData);
+      }
+
       if (success) {
         setFormData({
           nombre: "",
@@ -94,10 +129,16 @@ export default function AddExpenseModal({
         });
         onOpenChange(false);
       } else {
-        toast.error("Error al agregar el gasto. Inténtalo de nuevo.");
+        toast.error(
+          `Error al ${
+            editingExpense ? "actualizar" : "agregar"
+          } el gasto. Inténtalo de nuevo.`
+        );
       }
     } catch (error) {
-      toast.error("Error al agregar el gasto");
+      toast.error(
+        `Error al ${editingExpense ? "actualizar" : "agregar"} el gasto`
+      );
     } finally {
       setLoading(false);
     }
@@ -113,9 +154,13 @@ export default function AddExpenseModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Agregar Gasto</DialogTitle>
+          <DialogTitle>
+            {editingExpense ? "Editar Gasto" : "Agregar Gasto"}
+          </DialogTitle>
           <DialogDescription>
-            Completa los datos del nuevo gasto
+            {editingExpense
+              ? "Modifica los datos del gasto"
+              : "Completa los datos del nuevo gasto"}
           </DialogDescription>
         </DialogHeader>
 
@@ -249,7 +294,11 @@ export default function AddExpenseModal({
                 !formData.medioPago
               }
             >
-              {loading ? "Agregando..." : "Agregar Gasto"}
+              {loading
+                ? "Guardando..."
+                : editingExpense
+                ? "Actualizar Gasto"
+                : "Agregar Gasto"}
             </Button>
           </div>
         </form>

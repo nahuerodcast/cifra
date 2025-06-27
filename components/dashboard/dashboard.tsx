@@ -46,6 +46,17 @@ import {
   Upload,
   Trash2,
   Edit3,
+  CreditCard,
+  Banknote,
+  ArrowRightLeft,
+  Home,
+  Car,
+  Utensils,
+  Heart,
+  Gamepad2,
+  GraduationCap,
+  Shirt,
+  ShoppingCart,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useExpenses } from "@/hooks/useExpenses";
@@ -56,7 +67,29 @@ import { motion, AnimatePresence } from "framer-motion";
 import CountUp from "react-countup";
 import AddExpenseModal from "./add-expense-modal";
 import ConfirmationModal from "@/components/ui/confirmation-modal";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { toast } from "sonner";
+import type { Expense } from "@/hooks/useExpenses";
 // Charts are now implemented with CSS progress bars
+
+const CATEGORY_ICONS = {
+  Home,
+  Car,
+  Utensils,
+  Heart,
+  Gamepad2,
+  GraduationCap,
+  Shirt,
+  ShoppingCart,
+  Wallet,
+};
 
 interface DashboardProps {
   // Dashboard now handles the add expense modal internally
@@ -88,6 +121,9 @@ export default function Dashboard({}: DashboardProps) {
   >("overview");
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddExpenseModal, setShowAddExpenseModal] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [expenseToDelete, setExpenseToDelete] = useState<string | null>(null);
+  const [deletingExpense, setDeletingExpense] = useState(false);
 
   // Estados para gestión de categorías
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
@@ -392,6 +428,22 @@ export default function Dashboard({}: DashboardProps) {
     desktop: {
       x: 0,
     },
+  };
+
+  const handleDeleteExpense = (expenseId: string) => {
+    setExpenseToDelete(expenseId);
+  };
+
+  const confirmDeleteExpense = async () => {
+    if (!expenseToDelete) return;
+
+    setDeletingExpense(true);
+    try {
+      await deleteExpense(expenseToDelete);
+      setExpenseToDelete(null);
+    } finally {
+      setDeletingExpense(false);
+    }
   };
 
   return (
@@ -913,57 +965,140 @@ export default function Dashboard({}: DashboardProps) {
                           )}
                         </div>
                       ) : (
-                        <div className="space-y-3">
-                          {filteredExpenses.slice(0, 10).map((expense) => (
-                            <motion.div
-                              key={expense.id}
-                              initial={{ opacity: 0, x: -20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-                            >
-                              <div className="flex items-center space-x-3">
-                                <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center">
-                                  <Wallet className="w-5 h-5" />
-                                </div>
-                                <div>
-                                  <h4 className="font-medium">
-                                    {expense.nombre}
-                                  </h4>
-                                  <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                                    <Badge
-                                      variant="outline"
-                                      className="text-xs"
-                                    >
-                                      {expense.categoria}
-                                    </Badge>
-                                    <span>•</span>
-                                    <span>{expense.tipoGasto}</span>
-                                    <span>•</span>
-                                    <span>{expense.medioPago}</span>
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <p className="font-bold text-lg">
-                                  -{formatCurrency(expense.importe)}
-                                </p>
-                                {expense.porcentajeSueldo && (
-                                  <p className="text-xs text-muted-foreground">
-                                    {expense.porcentajeSueldo.toFixed(1)}% del
-                                    sueldo
-                                  </p>
-                                )}
-                              </div>
-                            </motion.div>
-                          ))}
-
-                          {filteredExpenses.length > 10 && (
-                            <div className="text-center pt-4">
-                              <p className="text-sm text-muted-foreground">
-                                Mostrando 10 de {filteredExpenses.length} gastos
-                              </p>
-                            </div>
-                          )}
+                        <div className="relative overflow-x-auto">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead className="w-[300px]">
+                                  Transacción
+                                </TableHead>
+                                <TableHead>Importe</TableHead>
+                                <TableHead>Fecha</TableHead>
+                                <TableHead>Medio de Pago</TableHead>
+                                <TableHead>Total</TableHead>
+                                <TableHead>Estado</TableHead>
+                                <TableHead className="text-right">
+                                  Acción
+                                </TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {filteredExpenses
+                                .slice(0, 10)
+                                .map((expense, index) => {
+                                  const category = categories.find(
+                                    (cat) => cat.name === expense.categoria
+                                  );
+                                  const IconComponent = category
+                                    ? CATEGORY_ICONS[
+                                        category.icon as keyof typeof CATEGORY_ICONS
+                                      ] || Wallet
+                                    : Wallet;
+                                  return (
+                                    <TableRow key={expense.id}>
+                                      <TableCell>
+                                        <div className="flex items-center gap-3">
+                                          <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">
+                                            <IconComponent className="w-4 h-4" />
+                                          </div>
+                                          <div>
+                                            <p className="font-medium">
+                                              {expense.nombre}
+                                            </p>
+                                            {expense.cuotas && (
+                                              <p className="text-xs text-muted-foreground">
+                                                {expense.cuotas} cuotas
+                                              </p>
+                                            )}
+                                            <div className="md:hidden flex gap-1 mt-1">
+                                              <Badge
+                                                variant="secondary"
+                                                className="text-xs"
+                                              >
+                                                {expense.categoria}
+                                              </Badge>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </TableCell>
+                                      <TableCell>
+                                        <span
+                                          className={
+                                            expense.importe > 0
+                                              ? "text-green-600"
+                                              : ""
+                                          }
+                                        >
+                                          {expense.importe > 0 ? "+" : "-"}
+                                          {formatCurrency(
+                                            Math.abs(expense.importe)
+                                          )}
+                                        </span>
+                                      </TableCell>
+                                      <TableCell>
+                                        {new Date(
+                                          expense.fechaCreacion
+                                        ).toLocaleTimeString("es-AR", {
+                                          hour: "numeric",
+                                          minute: "numeric",
+                                        })}
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="flex items-center gap-2">
+                                          {expense.medioPago === "Tarjeta" && (
+                                            <CreditCard className="w-4 h-4" />
+                                          )}
+                                          {expense.medioPago === "Cash" && (
+                                            <Banknote className="w-4 h-4" />
+                                          )}
+                                          {expense.medioPago ===
+                                            "Transferencia" && (
+                                            <ArrowRightLeft className="w-4 h-4" />
+                                          )}
+                                          <span>{expense.medioPago}</span>
+                                        </div>
+                                      </TableCell>
+                                      <TableCell>
+                                        {formatCurrency(expense.importe)}
+                                      </TableCell>
+                                      <TableCell>
+                                        <Badge
+                                          variant="default"
+                                          className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
+                                        >
+                                          Success
+                                        </Badge>
+                                      </TableCell>
+                                      <TableCell className="text-right">
+                                        <div className="flex items-center justify-end gap-2">
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => {
+                                              setEditingExpense(expense);
+                                              setShowAddExpenseModal(true);
+                                            }}
+                                            className="h-8 w-8 p-0"
+                                          >
+                                            <Edit3 className="h-4 w-4" />
+                                          </Button>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() =>
+                                              handleDeleteExpense(expense.id)
+                                            }
+                                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                          >
+                                            <Trash2 className="h-4 w-4" />
+                                          </Button>
+                                        </div>
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                })}
+                            </TableBody>
+                          </Table>
                         </div>
                       )}
                     </CardContent>
@@ -1369,12 +1504,19 @@ export default function Dashboard({}: DashboardProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Modal para agregar gastos */}
+      {/* Modal para agregar/editar gastos */}
       <AddExpenseModal
         open={showAddExpenseModal}
-        onOpenChange={setShowAddExpenseModal}
+        onOpenChange={(open) => {
+          setShowAddExpenseModal(open);
+          if (!open) {
+            setEditingExpense(null);
+          }
+        }}
         onAddExpense={addExpense}
+        onUpdateExpense={updateExpense}
         categories={categories}
+        editingExpense={editingExpense}
       />
 
       {/* Modal de confirmación para eliminar categoría */}
@@ -1388,6 +1530,19 @@ export default function Dashboard({}: DashboardProps) {
         variant="destructive"
         onConfirm={confirmDeleteCategory}
         loading={deletingCategory}
+      />
+
+      {/* Modal de confirmación para eliminar gasto */}
+      <ConfirmationModal
+        open={!!expenseToDelete}
+        onOpenChange={() => setExpenseToDelete(null)}
+        title="Eliminar Gasto"
+        description="¿Estás seguro de que quieres eliminar este gasto? Esta acción no se puede deshacer."
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        variant="destructive"
+        onConfirm={confirmDeleteExpense}
+        loading={deletingExpense}
       />
     </div>
   );

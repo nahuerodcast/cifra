@@ -18,8 +18,17 @@ export default function CifraApp() {
   useEffect(() => {
     setMounted(true);
 
-    // Clean URL parameters after authentication callback
+    // Handle OAuth callback if code is present
     const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get("code");
+
+    if (code) {
+      // Redirect to the proper callback route to handle the OAuth code
+      window.location.href = `/auth/callback?code=${code}`;
+      return;
+    }
+
+    // Clean URL parameters after authentication callback
     if (urlParams.get("auth") === "success") {
       // Remove parameter from URL without reloading the page
       const newUrl = window.location.pathname;

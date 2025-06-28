@@ -50,20 +50,11 @@ export default function LandingPage({ onStartApp }: LandingPageProps) {
     };
 
     const baseUrl = getBaseUrl();
-    const redirectUrl = `${baseUrl}/auth/callback`;
-
-    console.log("Google OAuth Debug:", {
-      baseUrl,
-      redirectUrl,
-      windowOrigin:
-        typeof window !== "undefined" ? window.location.origin : "undefined",
-      envVar: process.env.NEXT_PUBLIC_SITE_URL || "not set",
-    });
 
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: redirectUrl,
+        redirectTo: `${baseUrl}/auth/callback`,
       },
     });
   };

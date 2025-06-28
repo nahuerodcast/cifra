@@ -28,13 +28,6 @@ export async function GET(request: NextRequest) {
 
   const origin = getOrigin();
 
-  console.log("OAuth Callback Debug:", {
-    code: code ? "present" : "missing",
-    requestUrl: requestUrl.toString(),
-    origin,
-    headers: Object.fromEntries(request.headers.entries()),
-  });
-
   if (code) {
     const cookieStore = await cookies();
     const supabase = createServerClient(

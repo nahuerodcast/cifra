@@ -8,7 +8,32 @@ export async function GET(request: NextRequest) {
   const code = requestUrl.searchParams.get("code");
 
   // Get origin more robustly for production
-  const origin = process.env.NEXT_PUBLIC_SITE_URL || requestUrl.origin;
+  const getOrigin = () => {
+    // First try environment variable
+    if (process.env.NEXT_PUBLIC_SITE_URL) {
+      return process.env.NEXT_PUBLIC_SITE_URL;
+    }
+
+    // Auto-detect production URLs
+    if (
+      requestUrl.origin.includes("vercel.app") ||
+      requestUrl.origin.includes("cifrafinance")
+    ) {
+      return requestUrl.origin;
+    }
+
+    // Default to request origin
+    return requestUrl.origin;
+  };
+
+  const origin = getOrigin();
+
+  console.log("OAuth Callback Debug:", {
+    code: code ? "present" : "missing",
+    requestUrl: requestUrl.toString(),
+    origin,
+    headers: Object.fromEntries(request.headers.entries()),
+  });
 
   if (code) {
     const cookieStore = await cookies();

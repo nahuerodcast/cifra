@@ -76,10 +76,26 @@ export default function AuthComponent({ onAuthSuccess }: AuthComponentProps) {
               },
             }}
             providers={["google"]}
-            redirectTo={`${
-              process.env.NEXT_PUBLIC_SITE_URL ||
-              (typeof window !== "undefined" ? window.location.origin : "")
-            }/auth/callback`}
+            redirectTo={(() => {
+              if (typeof window === "undefined") return "/auth/callback";
+
+              // If we have the env var, use it
+              if (process.env.NEXT_PUBLIC_SITE_URL) {
+                return `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`;
+              }
+
+              // Auto-detect production URLs
+              const origin = window.location.origin;
+              if (
+                origin.includes("vercel.app") ||
+                origin.includes("cifrafinance")
+              ) {
+                return `${origin}/auth/callback`;
+              }
+
+              // Default to current origin for development
+              return `${origin}/auth/callback`;
+            })()}
             onlyThirdPartyProviders
             localization={{
               variables: {

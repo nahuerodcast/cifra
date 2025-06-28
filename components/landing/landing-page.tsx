@@ -30,15 +30,40 @@ export default function LandingPage({ onStartApp }: LandingPageProps) {
   const [supabase] = useState(() => createSupabaseBrowserClient());
 
   const handleGoogleAuth = async () => {
-    // Use production base URL if configured, otherwise use current origin
-    const baseUrl =
-      process.env.NEXT_PUBLIC_SITE_URL ||
-      (typeof window !== "undefined" ? window.location.origin : "");
+    // Detect if we're in production (Vercel) or development
+    const getBaseUrl = () => {
+      if (typeof window === "undefined") return "";
+
+      // If we have the env var, use it
+      if (process.env.NEXT_PUBLIC_SITE_URL) {
+        return process.env.NEXT_PUBLIC_SITE_URL;
+      }
+
+      // Auto-detect production URLs
+      const origin = window.location.origin;
+      if (origin.includes("vercel.app") || origin.includes("cifrafinance")) {
+        return origin;
+      }
+
+      // Default to current origin for development
+      return origin;
+    };
+
+    const baseUrl = getBaseUrl();
+    const redirectUrl = `${baseUrl}/auth/callback`;
+
+    console.log("Google OAuth Debug:", {
+      baseUrl,
+      redirectUrl,
+      windowOrigin:
+        typeof window !== "undefined" ? window.location.origin : "undefined",
+      envVar: process.env.NEXT_PUBLIC_SITE_URL || "not set",
+    });
 
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${baseUrl}/auth/callback`,
+        redirectTo: redirectUrl,
       },
     });
   };

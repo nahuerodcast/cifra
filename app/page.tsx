@@ -22,7 +22,14 @@ export default function CifraApp() {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get("code");
 
+    console.log("Page load debug:", {
+      url: window.location.href,
+      code: code ? "present" : "missing",
+      origin: window.location.origin,
+    });
+
     if (code) {
+      console.log("Redirecting to callback with code:", code);
       // Redirect to the proper callback route to handle the OAuth code
       window.location.href = `/auth/callback?code=${code}`;
       return;
@@ -30,6 +37,7 @@ export default function CifraApp() {
 
     // Clean URL parameters after authentication callback
     if (urlParams.get("auth") === "success") {
+      console.log("Auth success, cleaning URL");
       // Remove parameter from URL without reloading the page
       const newUrl = window.location.pathname;
       window.history.replaceState({}, "", newUrl);
